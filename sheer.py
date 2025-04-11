@@ -1,30 +1,53 @@
-import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
-from tkinter import Label,Button,Frame,Radiobutton
+import customtkinter as ctk
+from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame
+ctk.set_appearance_mode('dark')
+ctk.set_default_color_theme('green')
+
+import pandas as pd
+from abc import ABC,abstractmethod
 
 
+class Account(ABC):
+   def __init__(self,username,password):
+      self.username=username
+      self.password=password
+   def ChangePassword(self,newPass):
+      self.password=newPass
+
+   @abstractmethod
+   def ShowOperations(self):
+      pass
+
+class User(Account):
+   def __init__(self,user_name,pass_word):
+      Account.__init__(self,user_name,pass_word)
+
+
+class Admin(Account):
+   pass
 
 class Rental_System:
-   def __init__(self,root):
+  def __init__(self,root):
       self.root=root
-      self.root.title("CEP")
-      root.geometry("500x500+50+50")
-      root.minsize(200, 100)
-      root.maxsize(800, 800)
+      self.root.title('CAR RENTAL SYSTEM')
+      self.root.geometry('500x500')
+      header=CTkLabel(
+         self.root,
+         width=10,
+         corner_radius=10,
+         text='Welcome To The Car Rental System\n\nPlease Choose Your Account Type',
+         font=("Arial", 16)).pack(pady=20)
+
+    
       
-      header = Label(self.root,text="|||~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~CAR RENTAL SYSTEM~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|||")
-      header.pack()#Displays a header.
+      self.menu_frame =CTkFrame(root, width=500, height=500)
+      self.menu_frame.pack(pady=40)
+      CTkButton(master=self.menu_frame,text='USER ACCOUNT',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='ADMINISTRATOR',corner_radius=10,fg_color='blue').pack(pady=10)
       
-      self.menu_frame = tk.Frame(root)
-      self.menu_frame.pack(pady=50)
-      tk.Button(self.menu_frame, text="USER", width=30,height=5,bg='aqua').pack(pady=30)
-      tk.Button(self.menu_frame, text="ADMINISTRATOR", width=30,height=5,bg='aqua').pack(pady=30)
 
 
 
-
-
-if __name__ == "__main__":
-    root=tk.Tk()#Creates the main tkinter window (root).
-    app=Rental_System(root)#Initializes the Rental System class.
-    root.mainloop()#Starts the tkinter event loop (root.mainloop()).
+root=ctk.CTk()
+app=Rental_System(root)
+root.mainloop()
