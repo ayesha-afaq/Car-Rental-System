@@ -8,9 +8,10 @@ from abc import ABC,abstractmethod
 
 
 class Account(ABC):
-   def __init__(self,username,password):
+   def __init__(self,username,password,check):
       self.username=username
       self.password=password
+      self.check=check
    def ChangePassword(self,newPass):
       self.password=newPass
 
