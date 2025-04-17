@@ -7,12 +7,13 @@ ctk.set_default_color_theme('green')
 import pandas as pd
 from abc import ABC,abstractmethod
 
+ADMIN_PASSWORD_FILE='adminpass.txt'
 
 class Account(ABC):
-   def __init__(self,username,password,check):
-      self.username=username
+   def __init__(self,password):
+      # self.username=username
       self.password=password
-      self.check=check
+      
    def ChangePassword(self,newPass):
       self.password=newPass
 
@@ -22,11 +23,16 @@ class Account(ABC):
 
 class User(Account):
    def __init__(self,user_name,pass_word):
-      Account.__init__(self,user_name,pass_word)
+      Account.__init__(self,pass_word)
+      self.username=user_name
 
 
 class Admin(Account):
-   pass
+   def __init__(self, password):
+      super().__init__(password)
+      
+   def ShowOperations(self):
+      pass
 
 class Rental_System:
    
@@ -49,11 +55,16 @@ class Rental_System:
          CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=self.admin_work,corner_radius=10,fg_color='blue').pack(pady=10)
 
    def admin_work(self):
-         if not os.path.isfile('adminpass.txt'): ## checks if given path ki file exist krti hae
-            pass ## creates admin object
+         if not os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae
+            with open(ADMIN_PASSWORD_FILE,'w') as f:
+                  password=CTkInputDialog(text='Set Password',title='Creating Admin Account').get_input()
+                  f.write(password)
+                  
+            self.admin=Admin(password)
+            print('admin made ')
          else: 
             print('file exists')
-            with open('adminpass.txt') as pass_file:
+            with open(ADMIN_PASSWORD_FILE) as pass_file:
                p=pass_file.read().strip()
             
             password=CTkInputDialog(text='Enter Password',title='Admin Login').get_input()
