@@ -1,6 +1,7 @@
 import os
 import customtkinter as ctk
-from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog
+from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
+
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
@@ -8,6 +9,21 @@ import pandas as pd
 from abc import ABC,abstractmethod
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
+
+def messagebox(title, message,error=False):
+    ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
+    top = CTkToplevel()
+    top.title(title)
+    top.geometry("300x200")
+    top.resizable(False, False)
+    if error==True:
+        CTkLabel(top,text="⚠️",font=("Arial", 24)).pack(pady=10)
+    # Message
+    CTkLabel(top, text=message).pack(pady=30)
+    
+    # OK button (closes the window)
+    CTkButton(top, text="OK", command=top.destroy).pack()
+
 
 class Account(ABC):
    def __init__(self,password):
@@ -30,6 +46,7 @@ class User(Account):
 class Admin(Account):
    def __init__(self, password):
       super().__init__(password)
+      self.ShowOperations()
 
    def ShowOperations(self):
       pass
@@ -57,7 +74,6 @@ class Rental_System:
    def admin_work(self):
          if not os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae
             with open(ADMIN_PASSWORD_FILE,'w') as f:
-                  
                   password=CTkInputDialog(text='Set Password',title='Creating Admin Account').get_input()
                   f.write(password)
                   
@@ -65,17 +81,22 @@ class Rental_System:
             print('admin made ')
          else: 
             print('file exists')
-
             with open(ADMIN_PASSWORD_FILE) as pass_file:
                p=pass_file.read().strip()
-
-            # Hide the main window
-            self.root.withdraw()
             password=CTkInputDialog(text='Enter Password',title='Admin Login').get_input()
          
             if p==password:
                print('good')
-            else: print('not gud')
+               messagebox('Success','Access Granted To Admin Account')
+               # Hide the main window
+               # self.root.withdraw()
+               
+            else: 
+               print('not gud')
+               messagebox('Access Blocked','Incorrect Password')
+
+
+
             # Show the main window again
             # self.root.deiconify()
       
