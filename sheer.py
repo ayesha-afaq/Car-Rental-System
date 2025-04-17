@@ -30,7 +30,7 @@ class User(Account):
 class Admin(Account):
    def __init__(self, password):
       super().__init__(password)
-      
+
    def ShowOperations(self):
       pass
 
@@ -57,6 +57,7 @@ class Rental_System:
    def admin_work(self):
          if not os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae
             with open(ADMIN_PASSWORD_FILE,'w') as f:
+                  
                   password=CTkInputDialog(text='Set Password',title='Creating Admin Account').get_input()
                   f.write(password)
                   
@@ -64,14 +65,19 @@ class Rental_System:
             print('admin made ')
          else: 
             print('file exists')
+
             with open(ADMIN_PASSWORD_FILE) as pass_file:
                p=pass_file.read().strip()
-            
+
+            # Hide the main window
+            self.root.withdraw()
             password=CTkInputDialog(text='Enter Password',title='Admin Login').get_input()
          
             if p==password:
                print('good')
             else: print('not gud')
+            # Show the main window again
+            # self.root.deiconify()
       
 
 
