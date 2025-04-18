@@ -1,1 +1,16 @@
-print('hello world')
+import customtkinter as ctk
+root=ctk.CTk()
+ctk.CTkLabel(root,text='hello').pack()
+print('......')
+print('......')
+print('......')
+root.withdraw()
+print('hi')
+print('hi')
+print('hi')
+print('hi')
+print('hi')
+root.deiconify()
+root.update()
+
+root.mainloop()

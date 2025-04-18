@@ -25,6 +25,7 @@ def messagebox(title, message,error=False):
     CTkButton(top, text="OK", command=top.destroy).pack()
 
 
+
 class Account(ABC):
    def __init__(self,password):
       # self.username=username
@@ -53,8 +54,24 @@ class Admin(Account):
       self.admin_window=admin_window
       self.admin_window.title('Admin')
       self.admin_window.geometry('450x450')
+      self.admin_frame =CTkFrame(admin_window, width=500, height=500)
+      self.admin_frame.pack(pady=40)
+      CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command=self.change_password,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',corner_radius=10,fg_color='blue').pack(pady=10)
 
       admin_window.mainloop()
+
+   def change_password(self):
+      new_pass=CTkInputDialog(text='Enter New Password',title='Change Password').get_input()
+      with open(ADMIN_PASSWORD_FILE,'w') as f:
+         f.write(new_pass)
+         print('done')
+      messagebox('Change Password','Password Changed Successfully :)')
+
 
 class Rental_System:
    
@@ -88,15 +105,7 @@ class Rental_System:
       self.root.destroy()
        
    def admin_work(self):
-      if not os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae
-         with open(ADMIN_PASSWORD_FILE,'w') as f:
-            password=CTkInputDialog(text='Set Password',title='Creating Admin Account').get_input()
-            f.write(password)
-                  
-         self.admin=Admin(password)
-         self.admin.ShowOperations()
-         print('admin made ')
-      else: 
+      if os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae 
          print('file exists')
          with open(ADMIN_PASSWORD_FILE) as pass_file:
             p=pass_file.read().strip()
@@ -104,16 +113,25 @@ class Rental_System:
          
          if p==password:
             print('good')
-            messagebox('Success','Access Granted To Admin Account')
-            self.admin.ShowOperations() ##ispe error arha hai idk whyyyyyyy
+            # messagebox('Success','Access Granted To Admin Account')
             # Hide the main window
             # self.root.withdraw()
+            self.admin=Admin(password)
+            self.admin.ShowOperations() ##ispe error arha hai idk whyyyyyyy
+            # Show the main window again
+            
+            self.root.deiconify()
+            print('hello')
+            
+            
                
          else: 
             print('not gud')
-            messagebox('Access Blocked','Incorrect Password')
+            messagebox('Access Blocked','Incorrect Password',error=True)
 
-
+   def back_to_home(self):
+      # Show the main window again
+      self.root.deiconify() 
 
          # Show the main window again
          # self.root.deiconify()
