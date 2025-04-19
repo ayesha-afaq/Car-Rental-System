@@ -24,7 +24,8 @@ def messagebox(title, message,error=False):
     # OK button (closes the window)
     CTkButton(top, text="OK", command=top.destroy).pack()
 
-
+class Car:
+   pass
 
 class Account(ABC):
    def __init__(self,password):
@@ -60,18 +61,29 @@ class Admin(Account):
       CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command=self.change_password,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command=self.ChangePassword,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
       admin_window.mainloop()
 
-   def change_password(self):
-      new_pass=CTkInputDialog(text='Enter New Password',title='Change Password').get_input()
-      with open(ADMIN_PASSWORD_FILE,'w') as f:
-         f.write(new_pass)
-         print('done')
-      messagebox('Change Password','Password Changed Successfully :)')
+   def back_home(self):
+      try:
+         self.admin_window.destroy()
+         print('admin window destroyed')
+      except:
+         print('unknown error')
 
+   def ChangePassword(self):
+      try:
+         new_pass=CTkInputDialog(text='Enter New Password',title='Change Password').get_input()
+         with open(ADMIN_PASSWORD_FILE,'w') as f:
+            f.write(new_pass)
+            messagebox('Change Password','Password Changed Successfully :)')
+      except:
+         messagebox('Unknown Error','Please Enter Valid Password',error=True)
+      
+   def add_car(self):
+      pass
 
 class Rental_System:
    
@@ -117,14 +129,12 @@ class Rental_System:
             # Hide the main window
             # self.root.withdraw()
             self.admin=Admin(password)
-            self.admin.ShowOperations() ##ispe error arha hai idk whyyyyyyy
+            
             # Show the main window again
             
-            self.root.deiconify()
-            print('hello')
+            # self.root.deiconify()
+            # print('hello')
             
-            
-               
          else: 
             print('not gud')
             messagebox('Access Blocked','Incorrect Password',error=True)
