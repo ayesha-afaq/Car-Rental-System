@@ -139,10 +139,6 @@ class Rental_System:
             print('not gud')
             messagebox('Access Blocked','Incorrect Password',error=True)
 
-   def back_to_home(self):
-      # Show the main window again
-      self.root.deiconify() 
-
          # Show the main window again
          # self.root.deiconify()
       
