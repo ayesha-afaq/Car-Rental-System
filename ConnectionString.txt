@@ -1,0 +1,4 @@
+"DRIVER={SQL Server};"+
+"SERVER=.\SQLEXPRESS;"+
+"DATABASE=Project2;"+
+"Trusted_Connection=yes;"

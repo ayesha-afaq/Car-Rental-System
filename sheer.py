@@ -1,4 +1,5 @@
 import os
+import pyodbc
 import customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
 
@@ -9,6 +10,79 @@ import pandas as pd
 from abc import ABC,abstractmethod
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
+Connection_String='connection.txt'
+class User:
+   def __init__(self):
+      self.name=None
+      self.password=None
+      self.balance=None
+      #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
+      self.CreateUserWindow()
+
+
+   def ShowOperations(self):
+
+      pass
+   def CreateUser(self,name,password,balance):
+      self.name=name
+      self.password=password
+      self.balance=balance
+      
+      self.db=RecordManagement("Users")
+      self.db.insert(self.name,self.password,self.balance)
+
+   def CreateUserWindow(self):
+      create_user_window=ctk.CTk()
+      self.create_user_window=create_user_window
+      self.admin_window.title('Create User')
+      self.admin_window.geometry('450x450')
+      self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
+      self.create_user_Frame.pack(pady=40)
+      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      
+      name=CTkEntry(self.create_user_Frame,placeholder_text='Enter your name')
+      name.place(relx=0.5,rely=0.4,anchor='center')
+      password=CTkEntry(self.create_user_Frame,placeholder_text='Enter your password')
+      password.place(relx=0.5,rely=0.4,anchor='center')
+      balance=CTkEntry(self.create_user_Frame,placeholder_text='Enter your balance')
+      balance.place(relx=0.5,rely=0.4,anchor='center')
+      CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),password.get(),balance.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      create_user_window.mainloop()
+
+class RecordManagement:
+   def __init__(self,TableName):
+      self.TableName=TableName
+      try:
+         with open(Connection_String) as cs_file:
+            self.cs=cs_file.read().strip()
+         self.connection=pyodbc.connect(self.cs)
+         print('connected to database')
+         
+         
+
+      except Exception as e:
+         print('connection error')
+         messagebox('Connection Error',e,error=True)
+         return
+      else:
+         self.connection.autocommit=True
+         self.cursor=self.connection.cursor()
+
+   def insert(self,*args):
+      
+      if self.TableName=='Users':
+         self.cursor.execute(
+                           f"INSERT INTO {self.TableName} (NAME, PASSWORD, BALANCE) VALUES (?, ?, ?)",
+                           (args[0], args[1], args[2])  
+)
+
+      
+         
+     
+      
+
+   
+      
 
 def messagebox(title, message,error=False):
     ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
@@ -106,7 +180,7 @@ class Rental_System:
          
       self.menu_frame =CTkFrame(root, width=500, height=500)
       self.menu_frame.pack(pady=40)
-      CTkButton(master=self.menu_frame,text='USER ACCOUNT',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=self.admin_work,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
 
