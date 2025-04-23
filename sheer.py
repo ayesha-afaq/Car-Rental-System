@@ -10,43 +10,62 @@ import pandas as pd
 from abc import ABC,abstractmethod
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
-Connection_String='connection.txt'
-class User:
+Connection_String='ConnectionString.txt'
+class Account(ABC):
+   def __init__(self,password):
+      # self.username=username
+      self.password=password
+      
+   def ChangePassword(self,newPass):
+      self.password=newPass
+
+   @abstractmethod
+   def ShowOperations(self):
+      pass
+class User(Account):
    def __init__(self):
       self.name=None
       self.password=None
       self.balance=None
+      self.address=None
       #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
       self.CreateUserWindow()
 
 
    def ShowOperations(self):
-
-      pass
-   def CreateUser(self,name,password,balance):
+      self.test="hi"
+      print('show operations')
+   def CreateUser(self,name,username,password,balance,address):
+      self.username=username
       self.name=name
       self.password=password
       self.balance=balance
+      self.address=address
       
       self.db=RecordManagement("Users")
-      self.db.insert(self.name,self.password,self.balance)
+      self.db.insert(self.username,self.name,self.password,self.balance,self.address)
 
    def CreateUserWindow(self):
       create_user_window=ctk.CTk()
       self.create_user_window=create_user_window
-      self.admin_window.title('Create User')
-      self.admin_window.geometry('450x450')
+      self.create_user_window.title('Create User')
+      self.create_user_window.geometry('450x450')
       self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
       self.create_user_Frame.pack(pady=40)
       # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
       
-      name=CTkEntry(self.create_user_Frame,placeholder_text='Enter your name')
-      name.place(relx=0.5,rely=0.4,anchor='center')
-      password=CTkEntry(self.create_user_Frame,placeholder_text='Enter your password')
-      password.place(relx=0.5,rely=0.4,anchor='center')
-      balance=CTkEntry(self.create_user_Frame,placeholder_text='Enter your balance')
-      balance.place(relx=0.5,rely=0.4,anchor='center')
-      CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),password.get(),balance.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your name',corner_radius=10,fg_color='blue')
+      name.pack(pady=10)
+      user_name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
+      user_name.pack(pady=10)
+      
+      password=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
+      password.pack(pady=10)
+      balance=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your balance',corner_radius=10,fg_color='blue')
+      balance.pack(pady=10)
+      address=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your address',corner_radius=10,fg_color='blue')
+      address.pack(pady=10)
+      CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),user_name.get(),password.get(),balance.get(),address.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       create_user_window.mainloop()
 
 class RecordManagement:
@@ -72,8 +91,8 @@ class RecordManagement:
       
       if self.TableName=='Users':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (NAME, PASSWORD, BALANCE) VALUES (?, ?, ?)",
-                           (args[0], args[1], args[2])  
+                           f"INSERT INTO {self.TableName} (USER_NAME,NAME, PASSWORD, BALANCE,ADDRESS) VALUES (?, ?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3],args[4])  
 )
 
       
@@ -101,22 +120,12 @@ def messagebox(title, message,error=False):
 class Car:
    pass
 
-class Account(ABC):
-   def __init__(self,password):
-      # self.username=username
-      self.password=password
-      
-   def ChangePassword(self,newPass):
-      self.password=newPass
 
-   @abstractmethod
-   def ShowOperations(self):
-      pass
 
-class User(Account):
-   def __init__(self,user_name,pass_word):
-      Account.__init__(self,pass_word)
-      self.username=user_name
+# class User(Account):
+#    def __init__(self,user_name,pass_word):
+#       Account.__init__(self,pass_word)
+#       self.username=user_name
 
 
 class Admin(Account):
