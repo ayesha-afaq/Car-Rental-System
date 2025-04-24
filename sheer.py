@@ -28,13 +28,49 @@ class User(Account):
       self.password=None
       self.balance=None
       self.address=None
+      user_window=ctk.CTk()
+      self.user_window=user_window
+      self.user_window.title('User Portal')
+      self.user_window.geometry('450x450')
+      self.user_Frame=CTkFrame(user_window, width=500, height=500)
+      self.user_Frame.pack(pady=40)
+      CTkButton(master=self.user_Frame,text='Sign in',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_Frame,text='Log in',command=lambda: self.LoginWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
+      user_window.mainloop()
       #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
-      self.CreateUserWindow()
+   
 
-
+   def LoginWindow(self):
+      login_window=ctk.CTk()
+      self.login_window=login_window
+      self.login_window.title('Login')
+      self.login_window.geometry('450x450')
+      self.login_Frame=CTkFrame(login_window, width=500, height=500)
+      self.login_Frame.pack(pady=40)
+      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      
+      user_name=CTkEntry(master=self.login_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
+      user_name.pack(pady=10)
+      
+      password=CTkEntry(master=self.login_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
+      password.pack(pady=10)
+      CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.Login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      login_window.mainloop()
+   def Login(self,username,password):
+      # self.username=username
+      # self.password=password
+      self.db=RecordManagement("Users")
+      result=self.db.fetch('login',username,password)
+      if len(result)==0:
+         messagebox('Login Failed','Invalid Username or Password',error=True)
+         return
+      else:
+         messagebox('Login Success','Welcome to the Car Rental System :)')
+         print('login success')
+         self.ShowOperations()
+      
    def ShowOperations(self):
-      self.test="hi"
-      print('show operations')
+      pass
    def CreateUser(self,name,username,password,balance,address):
       self.username=username
       self.name=name
@@ -92,8 +128,22 @@ class RecordManagement:
       if self.TableName=='Users':
          self.cursor.execute(
                            f"INSERT INTO {self.TableName} (USER_NAME,NAME, PASSWORD, BALANCE,ADDRESS) VALUES (?, ?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3],args[4])  
-)
+                           (args[0], args[1], args[2],args[3],args[4]))
+     
+      elif self.TableName=='Cars':
+         self.cursor.execute(
+                           f"INSERT INTO {self.TableName} (BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3]))
+      elif self.TableName=='RentalHistory':
+         self.cursor.execute(
+                           f"INSERT INTO {self.TableName} (USER_ID, CAR_ID, START_DATE, END_DATE) VALUES (?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3]))
+   def fetch(self,operation,*args):
+      if self.TableName=='Users':
+         if operation=="login":
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
+            return self.cursor.fetchall()
+
 
       
          
