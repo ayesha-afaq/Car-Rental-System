@@ -12,7 +12,7 @@ ctk.set_default_color_theme('green')
 
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
-Connection_String='ConnectionStringayesha.txt' ## apne pass krna hu tu apna naam daldena
+Connection_String=r"C:\Users\maham\OneDrive\Desktop\gitdemo\project\ConnectionStringmaham.txt" ## apne pass krna hu tu apna naam daldena
 
 
 def messagebox(title, message,error=False):

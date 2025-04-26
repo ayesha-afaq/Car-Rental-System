@@ -1,0 +1,1 @@
+Driver={SQL Server};Server=MAHAMMASROOR29\SQLEXPRESS;Database=project2;Trusted_Connection=yes;
