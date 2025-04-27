@@ -92,10 +92,10 @@ class Account(ABC):
 
       def Change(password):
          if account=='Admin':
-            ####changes the password in admin table
+            ####2 query: changes the password in admin table
             pass
          elif account=='User':
-            #change passowrd in user table
+            #2 query: changes passowrd in user table
             pass
 
 
@@ -191,27 +191,8 @@ class User(Account):
 
 
 
-
-
-# class User(Account):
-#    def __init__(self,user_name,pass_word):
-#       Account.__init__(self,pass_word)
-#       self.username=user_name
-
-
 class Admin(Account):
    def __init__(self):
-      self.admin_portal=ctk.CTk()
-      self.admin_portal.title('Admin Portal')
-      self.admin_portal.geometry('450x450')
-      self.admin_portal_frame=CTkFrame(self.admin_portal, width=500, height=500)
-      self.admin_portal_frame.pack(pady=40)
-      CTkButton(master=self.admin_portal_frame,text='Sign Up',command=self.Create_Admin_Window,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_portal_frame,text='Log in',command=self.AdminLoginWindow,corner_radius=10,fg_color='blue').pack(pady=10)
-      self.admin_portal.mainloop()
-
-   def AdminLoginWindow(self):
-      ##pehle db class dekhe gi kae admin wale table mae koi entry hae ya nhi
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
       self.admin_login_window.title('Login Admin Account')
@@ -229,42 +210,10 @@ class Admin(Account):
       admin_login_window.mainloop()
 
 
-   def Create_Admin_Window(self):
-      create_admin_window=ctk.CTk()
-      self.create_admin_window=create_admin_window
-      self.create_admin_window.title('Create Admin Account')
-      self.create_admin_window.geometry('450x450')
-      self.create_admin_Frame=CTkFrame(create_admin_window, width=500, height=500)
-      self.create_admin_Frame.pack(pady=40)
-      
-      user_name=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Username',corner_radius=10,fg_color='green')
-      user_name.pack(pady=10)
-      
-      password=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Password',corner_radius=10,fg_color='green')
-      password.pack(pady=10)
-      
-      CTkButton(master=self.create_admin_Frame,text='Create Admin',command=lambda: self.CreateAdmin(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-      create_admin_window.mainloop()
-
-   def CreateAdmin(self,username,password):
-         self.username=username
-         self.password=password
-         ##agar aisi koi condition lagani kae limited num of admin rkhne hain tu uska code bhi ayega
-         try:
-            self.db=RecordManagement("Admin")
-            self.db.insert(self.username,self.password)
-            messagebox(message='Admin account created sucessfully')
-            self.create_admin_window.destroy()
-         except:
-            messagebox('Error','Admin account could not be created')
-
-      
-
    def ShowOperations(self,username,password):
-      print(username)
-      print(password)
 
-      ##query for checks kae username aur password sahi hain ya nhi
+
+      ## 1. query for checks kae username aur password sahi hain ya nhi
 
       admin_window=ctk.CTk()
       self.admin_window=admin_window
