@@ -231,6 +231,21 @@ class User(Account):
       create_user_window.mainloop()
 
 
+class RentalHistory:
+
+   def __init__(self,car_id=None,start_date=None,end_date=None,rental_amount=None):
+      self.car_id=car_id
+      self.start_date=start_date
+      self.end_date=end_date
+      self.rental_amount=rental_amount
+      self.db=RecordManagement('RentalHistory')
+   
+   def add_rental(self):
+      try:
+         self.db.insert(self.car_id,self.start_date,self.end_date,self.rental_amount)
+         messagebox('Success','Rental history record added successfully')
+      except Exception as e:
+         messagebox('Error',e,error=True)
 
 
 class Admin(Account):
