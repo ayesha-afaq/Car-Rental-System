@@ -12,7 +12,7 @@ ctk.set_default_color_theme('green')
 
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
-Connection_String=r"C:\Users\maham\OneDrive\Desktop\gitdemo\project\ConnectionStringmaham.txt" ## apne pass krna hu tu apna naam daldena
+Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
 
 
 def messagebox(title, message,error=False):
@@ -74,7 +74,10 @@ class RecordManagement:
       if self.TableName=='Users':
          if operation=="login":
             self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
-            return self.cursor.fetchall()
+            return self.cursor.fetchone()
+         elif operation=="balance check":
+            self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
+            return self.cursor.fetchone()
 
 
 class Account(ABC):
@@ -120,7 +123,19 @@ class User(Account):
       CTkButton(master=self.user_Frame,text='Log in',command=lambda: self.LoginWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
       user_window.mainloop()
       #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
-   
+   def view_balance(self):
+      view_balance_window=ctk.CTk()
+      self.view_balance_window=view_balance_window
+     
+      self.view_balance_window.title('Account Balance')
+      self.view_balance_window.geometry('450x450')
+      self.view_balance_window_Frame=CTkFrame(view_balance_window, width=500, height=500)
+      self.view_balance_window_Frame.pack(pady=40)
+      self.db=RecordManagement("Users")
+      result=self.db.fetch('balance check',self.username)
+      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+      balancetxt.pack(pady=10)
+      view_balance_window.mainloop()
 
    def LoginWindow(self):
       login_window=ctk.CTk()
@@ -139,7 +154,7 @@ class User(Account):
       CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.Login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       login_window.mainloop()
 
-   def Login(self,username,password):
+   def Login(self,name,username,password,balance,address):
       # self.username=username
       # self.password=password
       self.db=RecordManagement("Users")
@@ -149,12 +164,26 @@ class User(Account):
          return
       else:
          messagebox('Login Success','Welcome to the Car Rental System :)')
+         
          print('login success')
          self.ShowOperations()
       
    def ShowOperations(self):
       ## inme change password ka option bhi rkhna hae jo admin aur user kai liyay same hoga account class sae inherit hoga
-      pass
+      user_window=ctk.CTk()
+      self.user_window=user_window
+      self.user_window.title('User Portal')
+      self.user_window.geometry('450x450')
+      self.user_frame =CTkFrame(user_window, width=500, height=500)
+      self.user_frame.pack(pady=40)
+      CTkButton(master=self.user_frame,text='Rent a car',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='return car',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='View Balance',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='Update Balance',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+
+      user_window.mainloop()
    def CreateUser(self,name,username,password,balance,address):
       self.username=username
       self.name=name
@@ -188,16 +217,21 @@ class User(Account):
       CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),user_name.get(),password.get(),balance.get(),address.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       create_user_window.mainloop()
 
+   def back_home(self):
+      try:
+         self.user_window.destroy()
+         print('window destroyed')
+      except:
+         print('unknown error')
 
-
-
+   
+      
 
 
 # class User(Account):
 #    def __init__(self,user_name,pass_word):
 #       Account.__init__(self,pass_word)
 #       self.username=user_name
-
 
 class Admin(Account):
    def __init__(self):
