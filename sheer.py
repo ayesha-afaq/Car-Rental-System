@@ -58,8 +58,8 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3]))
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3],args[4]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
                            f"INSERT INTO {self.TableName} (USER_ID, CAR_ID, START_DATE, END_DATE) VALUES (?, ?, ?, ?)",
@@ -122,8 +122,8 @@ class Car(RecordManagement):
       self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
       self.car_Frame.pack(pady=40)
 
-      # CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
-      # CarID.pack(pady=10)
+      CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
+      CarID.pack(pady=10)
       brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
       brand.pack(pady=10)
       model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
@@ -133,17 +133,17 @@ class Car(RecordManagement):
       priceperday.pack(pady=10)
       Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
-      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       car_window.mainloop()
 
    def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap):
-      # self.CarId=CarID
+      self.CarId=CarID
       self.Brand=Brand
       self.Model=Model
       self.Priceperday=Priceperday
       self.SeatingCapacity=SeatingCap
       self.db=RecordManagement("Cars")
-      self.db.insert(self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
+      self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
 
 
 class User(Account):
