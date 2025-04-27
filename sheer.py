@@ -12,7 +12,7 @@ ctk.set_default_color_theme('green')
 
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
-Connection_String=r"C:\Users\maham\OneDrive\Desktop\gitdemo\project\ConnectionStringmaham.txt" ## apne pass krna hu tu apna naam daldena
+Connection_String=r"D:\project\ConnectionStringayesha.txt" ## apne pass krna hu tu apna naam daldena
 
 
 def messagebox(title, message,error=False):
@@ -58,8 +58,8 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3]))
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3],args[4]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
                            f"INSERT INTO {self.TableName} (USER_ID, CAR_ID, START_DATE, END_DATE) VALUES (?, ?, ?, ?)",
@@ -92,10 +92,10 @@ class Account(ABC):
 
       def Change(password):
          if account=='Admin':
-            ####changes the password in admin table
+            ####2 query: changes the password in admin table
             pass
          elif account=='User':
-            #change passowrd in user table
+            #2 query: changes passowrd in user table
             pass
 
 
@@ -103,7 +103,49 @@ class Account(ABC):
    def ShowOperations(self):
       pass
    
-   
+
+class Car(RecordManagement):
+   def __init__(self):
+      self.CarId=None
+      self.Brand=None
+      self.Model=None
+      self.Priceperday=None
+      self.SeatingCapacity=None
+      self.reserve=None
+      self.Add_Car_Window()
+
+   def Add_Car_Window(self):
+      car_window=ctk.CTk()
+      self.car_window=car_window
+      self.car_window.title('Add Car')
+      self.car_window.geometry('450x450')
+      self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
+      self.car_Frame.pack(pady=40)
+
+      CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
+      CarID.pack(pady=10)
+      brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
+      brand.pack(pady=10)
+      model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
+      model.pack(pady=10)
+      
+      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day',corner_radius=10,fg_color='blue')
+      priceperday.pack(pady=10)
+      Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
+      Seating_Capacity.pack(pady=10)
+      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      car_window.mainloop()
+
+   def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap):
+      self.CarId=CarID
+      self.Brand=Brand
+      self.Model=Model
+      self.Priceperday=Priceperday
+      self.SeatingCapacity=SeatingCap
+      self.db=RecordManagement("Cars")
+      self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
+
+
 class User(Account):
    def __init__(self):
       self.name=None
@@ -172,7 +214,7 @@ class User(Account):
       self.create_user_window.geometry('450x450')
       self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
       self.create_user_Frame.pack(pady=40)
-      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      
       
       name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your name',corner_radius=10,fg_color='blue')
       name.pack(pady=10)
@@ -191,27 +233,8 @@ class User(Account):
 
 
 
-
-
-# class User(Account):
-#    def __init__(self,user_name,pass_word):
-#       Account.__init__(self,pass_word)
-#       self.username=user_name
-
-
 class Admin(Account):
    def __init__(self):
-      self.admin_portal=ctk.CTk()
-      self.admin_portal.title('Admin Portal')
-      self.admin_portal.geometry('450x450')
-      self.admin_portal_frame=CTkFrame(self.admin_portal, width=500, height=500)
-      self.admin_portal_frame.pack(pady=40)
-      CTkButton(master=self.admin_portal_frame,text='Sign Up',command=self.Create_Admin_Window,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_portal_frame,text='Log in',command=self.AdminLoginWindow,corner_radius=10,fg_color='blue').pack(pady=10)
-      self.admin_portal.mainloop()
-
-   def AdminLoginWindow(self):
-      ##pehle db class dekhe gi kae admin wale table mae koi entry hae ya nhi
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
       self.admin_login_window.title('Login Admin Account')
@@ -229,42 +252,10 @@ class Admin(Account):
       admin_login_window.mainloop()
 
 
-   def Create_Admin_Window(self):
-      create_admin_window=ctk.CTk()
-      self.create_admin_window=create_admin_window
-      self.create_admin_window.title('Create Admin Account')
-      self.create_admin_window.geometry('450x450')
-      self.create_admin_Frame=CTkFrame(create_admin_window, width=500, height=500)
-      self.create_admin_Frame.pack(pady=40)
-      
-      user_name=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Username',corner_radius=10,fg_color='green')
-      user_name.pack(pady=10)
-      
-      password=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Password',corner_radius=10,fg_color='green')
-      password.pack(pady=10)
-      
-      CTkButton(master=self.create_admin_Frame,text='Create Admin',command=lambda: self.CreateAdmin(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-      create_admin_window.mainloop()
-
-   def CreateAdmin(self,username,password):
-         self.username=username
-         self.password=password
-         ##agar aisi koi condition lagani kae limited num of admin rkhne hain tu uska code bhi ayega
-         try:
-            self.db=RecordManagement("Admin")
-            self.db.insert(self.username,self.password)
-            messagebox(message='Admin account created sucessfully')
-            self.create_admin_window.destroy()
-         except:
-            messagebox('Error','Admin account could not be created')
-
-      
-
    def ShowOperations(self,username,password):
-      print(username)
-      print(password)
 
-      ##query for checks kae username aur password sahi hain ya nhi
+
+      ## 1. query for checks kae username aur password sahi hain ya nhi
 
       admin_window=ctk.CTk()
       self.admin_window=admin_window
