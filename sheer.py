@@ -103,7 +103,49 @@ class Account(ABC):
    def ShowOperations(self):
       pass
    
-   
+
+class Car(RecordManagement):
+   def __init__(self):
+      self.CarId=None
+      self.Brand=None
+      self.Model=None
+      self.Priceperday=None
+      self.SeatingCapacity=None
+      self.reserve=None
+      self.Add_Car_Window()
+
+   def Add_Car_Window(self):
+      car_window=ctk.CTk()
+      self.car_window=car_window
+      self.car_window.title('Add Car')
+      self.car_window.geometry('450x450')
+      self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
+      self.car_Frame.pack(pady=40)
+
+      # CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
+      # CarID.pack(pady=10)
+      brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
+      brand.pack(pady=10)
+      model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
+      model.pack(pady=10)
+      
+      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day',corner_radius=10,fg_color='blue')
+      priceperday.pack(pady=10)
+      Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
+      Seating_Capacity.pack(pady=10)
+      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      car_window.mainloop()
+
+   def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap):
+      # self.CarId=CarID
+      self.Brand=Brand
+      self.Model=Model
+      self.Priceperday=Priceperday
+      self.SeatingCapacity=SeatingCap
+      self.db=RecordManagement("Cars")
+      self.db.insert(self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
+
+
 class User(Account):
    def __init__(self):
       self.name=None
@@ -172,7 +214,7 @@ class User(Account):
       self.create_user_window.geometry('450x450')
       self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
       self.create_user_Frame.pack(pady=40)
-      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      
       
       name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your name',corner_radius=10,fg_color='blue')
       name.pack(pady=10)
