@@ -12,7 +12,9 @@ ctk.set_default_color_theme('green')
 
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
+
 Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
+# Connection_String=r"D:\project\ConnectionStringayesha.txt" ## apne pass krna hu tu apna naam daldena
 
 
 def messagebox(title, message,error=False):
@@ -58,27 +60,38 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3]))
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3],args[4]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
                            f"INSERT INTO {self.TableName} (USER_ID, CAR_ID, START_DATE, END_DATE) VALUES (?, ?, ?, ?)",
                            (args[0], args[1], args[2],args[3]))
          
-      elif self.TableName=='Admin':
-         self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (USER_NAME, PASSWORD) VALUES (?, ?)",
-                           (args[0], args[1]))
+      # elif self.TableName=='Admin':
+      #    self.cursor.execute(
+      #                      f"INSERT INTO {self.TableName} (USER_NAME, PASSWORD) VALUES (?, ?)",
+      #                      (args[0], args[1]))
          
    def fetch(self,operation,*args):
       if self.TableName=='Users':
          if operation=="login":
             self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
             return self.cursor.fetchone()
-         elif operation=="balance check":
-            self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
-            return self.cursor.fetchone()
-
+         # elif operation=="balance check":
+         #    self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
+         #    return self.cursor.fetchone()
+   def update(self,operation,*args):
+      if self.TableName=='Users':
+         if operation=="update_balance":
+            self.cursor.execute(f"UPDATE {self.TableName} SET BALANCE={args[0]} WHERE USER_NAME='{args[1]}'")
+         elif operation=="update_password":
+            self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
+      elif self.TableName=='Admin':
+         if operation=="update_password":
+            self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
+         
+      
+      messagebox('Success','Balance updated successfully')
 
 class Account(ABC):
       
@@ -95,20 +108,65 @@ class Account(ABC):
 
       def Change(password):
          if account=='Admin':
-            ####changes the password in admin table
-            pass
+            self.db=RecordManagement("Admin")
+            self.db.update("update_password",self.username,password)
+            
          elif account=='User':
-            #change passowrd in user table
-            pass
+            self.db=RecordManagement("Users")
+            self.db.update("update_password",self.username,password)
+            
 
 
    @abstractmethod
    def ShowOperations(self):
       pass
    
-   
+
+class Car(RecordManagement):
+   def __init__(self):
+      self.CarId=None
+      self.Brand=None
+      self.Model=None
+      self.Priceperday=None
+      self.SeatingCapacity=None
+      self.reserve=None
+      self.Add_Car_Window()
+
+   def Add_Car_Window(self):
+      car_window=ctk.CTk()
+      self.car_window=car_window
+      self.car_window.title('Add Car')
+      self.car_window.geometry('450x450')
+      self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
+      self.car_Frame.pack(pady=40)
+
+      CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
+      CarID.pack(pady=10)
+      brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
+      brand.pack(pady=10)
+      model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
+      model.pack(pady=10)
+      
+      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day',corner_radius=10,fg_color='blue')
+      priceperday.pack(pady=10)
+      Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
+      Seating_Capacity.pack(pady=10)
+      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      car_window.mainloop()
+
+   def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap):
+      self.CarId=CarID
+      self.Brand=Brand
+      self.Model=Model
+      self.Priceperday=Priceperday
+      self.SeatingCapacity=SeatingCap
+      self.db=RecordManagement("Cars")
+      self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
+
+
 class User(Account):
    def __init__(self):
+      self.username=None
       self.name=None
       self.password=None
       self.balance=None
@@ -131,9 +189,10 @@ class User(Account):
       self.view_balance_window.geometry('450x450')
       self.view_balance_window_Frame=CTkFrame(view_balance_window, width=500, height=500)
       self.view_balance_window_Frame.pack(pady=40)
-      self.db=RecordManagement("Users")
-      result=self.db.fetch('balance check',self.username)
-      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+      # self.db=RecordManagement("Users")
+      # result=self.db.fetch('balance check',self.username)
+      # balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{self.balance}")
       balancetxt.pack(pady=10)
       view_balance_window.mainloop()
 
@@ -164,6 +223,11 @@ class User(Account):
          return
       else:
          messagebox('Login Success','Welcome to the Car Rental System :)')
+         self.username=result[0]
+         self.name=result[1]
+         self.password=result[2]
+         self.balance=result[3]
+         self.address=result[4]
          
          print('login success')
          self.ShowOperations()
@@ -179,11 +243,44 @@ class User(Account):
       CTkButton(master=self.user_frame,text='Rent a car',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='return car',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='View Balance',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='Update Balance',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='Update Balance',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
+   def update_balance_ui(self):
+      update_balance_window=ctk.CTk()
+      self.update_balance_window=update_balance_window
+      self.update_balance_window.title('Account Balance')
+      self.update_balance_window.geometry('450x450')
+      self.update_balance_window_Frame=CTkFrame(update_balance_window, width=500, height=500)
+      self.update_balance_window_Frame.pack(pady=40)
+      # self.db=RecordManagement("Users")
+      # result=self.db.fetch('balance check',self.username)
+      # balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Enter the amount to be added to your balance :")
+      amount=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter amount',corner_radius=10,fg_color='blue')
+      
+      balancetxt.pack(pady=10)
+      amount.pack(pady=10)
+      CTkButton(master=self.create_user_Frame,text='Add Amount',command=lambda: self.update_balance("add",amount.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{self.balance}")
+      balancetxt.pack(pady=10)
+
+   def update_balance(self,operation,amount):
+      if operation=='add':
+         self.balance+=amount
+         self.db=RecordManagement("Users")
+         self.db.update("update_balance",self.username,self.balance)
+      elif operation=='deduct':
+         self.balance-=amount
+         self.db=RecordManagement("Users")
+         self.db.update(self.username,self.balance)
+         messagebox('Success','Balance updated successfully')
+      else:
+         messagebox('Error','Invalid Operation',error=True)
+      # self.db=RecordManagement("Users")
+      # self.db.insert(self.username,self.name,self.password,self.balance,self.address)
    def CreateUser(self,name,username,password,balance,address):
       self.username=username
       self.name=name
@@ -201,7 +298,7 @@ class User(Account):
       self.create_user_window.geometry('450x450')
       self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
       self.create_user_Frame.pack(pady=40)
-      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      
       
       name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your name',corner_radius=10,fg_color='blue')
       name.pack(pady=10)
@@ -232,20 +329,24 @@ class User(Account):
 #    def __init__(self,user_name,pass_word):
 #       Account.__init__(self,pass_word)
 #       self.username=user_name
+class RentalHistory:
+
+   def __init__(self,car_id=None,start_date=None,end_date=None,rental_amount=None):
+      self.car_id=car_id
+      self.start_date=start_date
+      self.end_date=end_date
+      self.rental_amount=rental_amount
+      self.db=RecordManagement('RentalHistory')
+   
+   def add_rental(self):
+      try:
+         self.db.insert(self.car_id,self.start_date,self.end_date,self.rental_amount)
+         messagebox('Success','Rental history record added successfully')
+      except Exception as e:
+         messagebox('Error',e,error=True)
 
 class Admin(Account):
    def __init__(self):
-      self.admin_portal=ctk.CTk()
-      self.admin_portal.title('Admin Portal')
-      self.admin_portal.geometry('450x450')
-      self.admin_portal_frame=CTkFrame(self.admin_portal, width=500, height=500)
-      self.admin_portal_frame.pack(pady=40)
-      CTkButton(master=self.admin_portal_frame,text='Sign Up',command=self.Create_Admin_Window,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_portal_frame,text='Log in',command=self.AdminLoginWindow,corner_radius=10,fg_color='blue').pack(pady=10)
-      self.admin_portal.mainloop()
-
-   def AdminLoginWindow(self):
-      ##pehle db class dekhe gi kae admin wale table mae koi entry hae ya nhi
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
       self.admin_login_window.title('Login Admin Account')
@@ -263,42 +364,10 @@ class Admin(Account):
       admin_login_window.mainloop()
 
 
-   def Create_Admin_Window(self):
-      create_admin_window=ctk.CTk()
-      self.create_admin_window=create_admin_window
-      self.create_admin_window.title('Create Admin Account')
-      self.create_admin_window.geometry('450x450')
-      self.create_admin_Frame=CTkFrame(create_admin_window, width=500, height=500)
-      self.create_admin_Frame.pack(pady=40)
-      
-      user_name=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Username',corner_radius=10,fg_color='green')
-      user_name.pack(pady=10)
-      
-      password=CTkEntry(master=self.create_admin_Frame,placeholder_text='Enter Password',corner_radius=10,fg_color='green')
-      password.pack(pady=10)
-      
-      CTkButton(master=self.create_admin_Frame,text='Create Admin',command=lambda: self.CreateAdmin(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-      create_admin_window.mainloop()
-
-   def CreateAdmin(self,username,password):
-         self.username=username
-         self.password=password
-         ##agar aisi koi condition lagani kae limited num of admin rkhne hain tu uska code bhi ayega
-         try:
-            self.db=RecordManagement("Admin")
-            self.db.insert(self.username,self.password)
-            messagebox(message='Admin account created sucessfully')
-            self.create_admin_window.destroy()
-         except:
-            messagebox('Error','Admin account could not be created')
-
-      
-
    def ShowOperations(self,username,password):
-      print(username)
-      print(password)
 
-      ##query for checks kae username aur password sahi hain ya nhi
+
+      ## 1. query for checks kae username aur password sahi hain ya nhi
 
       admin_window=ctk.CTk()
       self.admin_window=admin_window
