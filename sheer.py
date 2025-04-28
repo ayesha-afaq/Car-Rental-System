@@ -2,6 +2,7 @@ import os
 import pyodbc
 import customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
+from CTkTable import CTkTable
 
 
 import pandas as pd
@@ -11,7 +12,6 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
 
-ADMIN_PASSWORD_FILE='adminpass.txt'
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
 from ConnectionString import connection_string_ayesha
@@ -94,6 +94,37 @@ class RecordManagement:
       
       messagebox('Success','Balance updated successfully')
 
+   def print_table(self,operation):
+      if operation=='rentals':
+         try:
+            # Create main window
+            table_window= ctk.CTk()
+            table_window.geometry("800x400")
+            table_window.title("User Rentals")
+
+            # Fetch data without pandas warning
+            self.cursor.execute(f"SELECT * FROM {self.TableName}")
+            columns = [column[0] for column in self.cursor.description]  # Get column names
+            data = self.cursor.fetchall()
+
+            # # Convert to format CTkTable needs (list of lists)
+            table_data = [columns] + list(data)
+
+            # # Create table
+            table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+            table.pack(expand=True, fill="both", padx=20, pady=20)
+
+            # # Add some styling
+            table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+            table_window.mainloop()
+
+         except:
+            print('error occuredddddd')
+
+         
+
+
 class Account(ABC):
       
    def ChangePassword(self,account):
@@ -123,7 +154,7 @@ class Account(ABC):
       pass
    
 
-class Car(RecordManagement):
+class Car():
    def __init__(self):
       self.CarId=None
       self.Brand=None
@@ -380,11 +411,15 @@ class Admin(Account):
       CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
       admin_window.mainloop()
+
+   def print_user_rentals(self):
+      self.db=RecordManagement('Users')
+      self.db.print_table(operation='rentals')
 
 
 
