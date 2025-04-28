@@ -1,1 +1,0 @@
-Driver={SQL Server};Server=AYESHAAA\\SQLEXPRESS;Database=project2;Trusted_Connection=yes;

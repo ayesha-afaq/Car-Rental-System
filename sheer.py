@@ -13,8 +13,9 @@ ctk.set_default_color_theme('green')
 
 ADMIN_PASSWORD_FILE='adminpass.txt'
 
-Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-# Connection_String=r"D:\project\ConnectionStringayesha.txt" ## apne pass krna hu tu apna naam daldena
+# Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
+from ConnectionString import connection_string_ayesha
+
 
 
 def messagebox(title, message,error=False):
@@ -36,9 +37,9 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         with open(Connection_String) as cs_file:
-            self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(self.cs)
+         # with open(Connection_String) as cs_file:
+            # self.cs=cs_file.read().strip()
+         self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
          
@@ -213,7 +214,7 @@ class User(Account):
       CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.Login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       login_window.mainloop()
 
-   def Login(self,name,username,password,balance,address):
+   def Login(self,username,password):
       # self.username=username
       # self.password=password
       self.db=RecordManagement("Users")
@@ -345,6 +346,7 @@ class RentalHistory:
       except Exception as e:
          messagebox('Error',e,error=True)
 
+
 class Admin(Account):
    def __init__(self):
       admin_login_window=ctk.CTk()
@@ -375,7 +377,7 @@ class Admin(Account):
       self.admin_window.geometry('450x450')
       self.admin_frame =CTkFrame(admin_window, width=500, height=500)
       self.admin_frame.pack(pady=40)
-      CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',corner_radius=10,fg_color='blue').pack(pady=10)
@@ -384,6 +386,8 @@ class Admin(Account):
 
       admin_window.mainloop()
 
+
+
    def back_home(self):
       try:
          self.admin_window.destroy()
@@ -391,8 +395,8 @@ class Admin(Account):
       except:
          print('unknown error')
 
-   def add_car(self):
-      pass
+
+   
 
 class Rental_System:
    
