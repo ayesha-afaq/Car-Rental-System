@@ -93,34 +93,66 @@ class RecordManagement:
          
       
       messagebox('Success','Balance updated successfully')
+   def delete(self,operation,*args):
+      if self.TableName=='Cars':
+         self.cursor.execute(f"DELETE * fROM {self.TableName} WHERE CAR_ID='{args[0]}'")
 
    def print_table(self,operation):
-      if operation=='rentals':
-         try:
-            # Create main window
-            table_window= ctk.CTk()
-            table_window.geometry("800x400")
-            table_window.title("User Rentals")
+      if self.TableName=="Users":
+         if operation=='rentals':
+            try:
+               # Create main window
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("User Rentals")
 
-            # Fetch data without pandas warning
-            self.cursor.execute(f"SELECT * FROM {self.TableName}")
-            columns = [column[0] for column in self.cursor.description]  # Get column names
-            data = self.cursor.fetchall()
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT * FROM {self.TableName}")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
 
-            # # Convert to format CTkTable needs (list of lists)
-            table_data = [columns] + list(data)
+               # # Convert to format CTkTable needs (list of lists)
+               table_data = [columns] + list(data)
 
-            # # Create table
-            table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-            table.pack(expand=True, fill="both", padx=20, pady=20)
+               # # Create table
+               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+               table.pack(expand=True, fill="both", padx=20, pady=20)
 
-            # # Add some styling
-            table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+               # # Add some styling
+               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
 
-            table_window.mainloop()
+               table_window.mainloop()
 
-         except:
-            print('error occuredddddd')
+            except:
+               print('error occuredddddd')
+      
+      elif self.TableName=="Cars":
+         if operation=='rentcar':
+            try:
+               # Create main window
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Car Options")
+
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+
+               # # Convert to format CTkTable needs (list of lists)
+               table_data = [columns] + list(data)
+
+               # # Create table
+               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+               table.pack(expand=True, fill="both", padx=20, pady=20)
+
+               # # Add some styling
+               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+               table_window.mainloop()
+
+            except:
+               print('error occuredddddd')
 
          
 
