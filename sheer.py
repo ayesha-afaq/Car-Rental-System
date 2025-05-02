@@ -97,7 +97,17 @@ class RecordManagement:
       if self.TableName=='Cars':
          self.cursor.execute(f"DELETE * fROM {self.TableName} WHERE CAR_ID='{args[0]}'")
 
-   def print_table(self,operation):
+   def remove_entry(self,carid,model):
+      try:
+         #querey
+         pass
+      except:
+         #####
+         messagebox()
+
+      print(f'{carid}, {model} removed')
+
+   def print_table(self,*args,operation):
       if self.TableName=="Users":
          if operation=='rentals':
             try:
@@ -117,6 +127,7 @@ class RecordManagement:
                # # Create table
                table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
                table.pack(expand=True, fill="both", padx=20, pady=20)
+
 
                # # Add some styling
                table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
@@ -153,8 +164,49 @@ class RecordManagement:
 
             except:
                print('error occuredddddd')
+         
+         elif operation=='removecar':
+            try:
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Car Options")
+
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT * FROM {self.TableName} ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+
+               # # Convert to format CTkTable needs (list of lists)
+               table_data = [columns] + list(data)
+
+               # # Create table
+               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+               table.pack(expand=True, fill="both", padx=20, pady=20)
+
+               #entry for car id and car model 
+               id=CTkEntry(master=table_window,placeholder_text='Car ID')
+               id.pack(padx=10,pady=10)
+               model=CTkEntry(master=table_window,placeholder_text='Car Model')
+               model.pack(padx=10,pady=10)
+               
+               CTkButton(master=table_window,text='ENTER',command=lambda: self.remove_entry(id.get(),model.get())).pack(pady=10)
+               
+
+               # # Add some styling
+               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+               table_window.mainloop()
+            except:
+               print('errooorrr')
+            
+
 
          
+   
+
+
+   def check_admin_credentials(self,username,password):
+      pass
 
 
 class Account(ABC):
@@ -431,23 +483,33 @@ class Admin(Account):
 
    def ShowOperations(self,username,password):
 
+      self.db=RecordManagement('Admin')
+      try:
+         self.db.check_admin_credentials(username,password)
+      except:
+         messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
 
-      ## 1. query for checks kae username aur password sahi hain ya nhi
+      else:
+         admin_window=ctk.CTk()
+         self.admin_window=admin_window
+         self.admin_window.title('Admin')
+         self.admin_window.geometry('450x450')
+         self.admin_frame =CTkFrame(admin_window, width=500, height=500)
+         self.admin_frame.pack(pady=40)
+         CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='REMOVE CAR',command=lambda: self.remove_car(),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
-      admin_window=ctk.CTk()
-      self.admin_window=admin_window
-      self.admin_window.title('Admin')
-      self.admin_window.geometry('450x450')
-      self.admin_frame =CTkFrame(admin_window, width=500, height=500)
-      self.admin_frame.pack(pady=40)
-      CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+         admin_window.mainloop()
 
-      admin_window.mainloop()
+   def remove_car(self):
+      self.db=RecordManagement('Cars')
+      self.db.print_table(operation='removecar')
+
+
 
    def print_user_rentals(self):
       self.db=RecordManagement('Users')
