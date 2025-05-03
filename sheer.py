@@ -213,25 +213,56 @@ class RecordManagement:
 
                # Fetch data without pandas warning
                ##___query for fetching the cars ARE reserved________
-               self.cursor.execute(f"SELECT * FROM {self.TableName}")
+               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ReservationStatus = 'RESERVED' ")
                columns = [column[0] for column in self.cursor.description]  # Get column names
                data = self.cursor.fetchall()
+               if len(data)==0:
+                  messagebox(title='Reserved Cars',message='No Cars Are Currently Reserved',button='ok')
+               else:
+                  # # Convert to format CTkTable needs (list of lists)
+                  table_data = [columns] + list(data)
 
-               # # Convert to format CTkTable needs (list of lists)
-               table_data = [columns] + list(data)
+                  # # Create table
+                  table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+                  table.pack(expand=True, fill="both", padx=20, pady=20)
 
-               # # Create table
-               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-               table.pack(expand=True, fill="both", padx=20, pady=20)
+                  # # Add some styling
+                  table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
 
-               # # Add some styling
-               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
-
-               table_window.mainloop()
+                  table_window.mainloop()
 
             except:
                print('sommeee error ocurred')
+      elif self.TableName=='RentalHistory':
+         try:
+            if operation=='rentalhistory':
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Rental History")
 
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT * FROM {self.TableName} ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+               if len(data)==0:
+                     messagebox(title='Rental History',message='No Rental History Yet!',button='ok')
+               else:
+                  # # Convert to format CTkTable needs (list of lists)
+                  table_data = [columns] + list(data)
+
+                  # # Create table
+                  table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+                  table.pack(expand=True, fill="both", padx=20, pady=20)
+
+                  # # Add some styling
+                  table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+                  table_window.mainloop()
+
+         except:
+            print('errrorrr')
+
+               
 
    def check_admin_credentials(self,username,password):
       ## query for checking admin username and password from admin table
@@ -530,6 +561,7 @@ class Admin(Account):
          CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',command= self.print_currently_reserved_cars,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='VIEW COMPLETE RENTAL HISTORY',command=self.print_comp_rental_history,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
          admin_window.mainloop()
@@ -548,6 +580,9 @@ class Admin(Account):
       self.db=RecordManagement('Cars')
       self.db.print_table(operation='reservedcars')
 
+   def print_comp_rental_history(self):
+      self.db=RecordManagement('RentalHistory')
+      self.db.print_table(operation='rentalhistory')
 
 
    def back_home(self):
