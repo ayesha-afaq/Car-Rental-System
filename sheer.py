@@ -3,6 +3,8 @@ import pyodbc
 import customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
 from CTkTable import CTkTable
+from tkcalendar import Calendar
+from tkinter import Toplevel
 
 
 import pandas as pd
@@ -14,7 +16,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_areeba
 
 
 
@@ -39,7 +41,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
          
@@ -95,6 +97,8 @@ class RecordManagement:
       messagebox('Success','Balance updated successfully')
    def delete(self,operation,*args):
       if self.TableName=='Cars':
+         if operation=="delete_car":
+            self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          self.cursor.execute(f"DELETE * fROM {self.TableName} WHERE CAR_ID='{args[0]}'")
 
    def print_table(self,operation):
@@ -385,8 +389,22 @@ class User(Account):
       except:
          print('unknown error')
 
+   def rent_car_window(self):
+      rent_car_window=ctk.CTk()
+      self.rent_car_window=rent_car_window
+      self.rent_car_window.title('Rent Car')
+      self.rent_car_window.geometry('450x450')
+      self.rent_car_Frame=CTkFrame(rent_car_window, width=500, height=500)
+      self.rent_car_Frame.pack(pady=40)
+      self.db=RecordManagement("Cars")
+      CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rent_car'),corner_radius=10,fg_color='blue').pack(pady=10)
+      car_id=CTkEntry(master=self.rent_car_Frame,placeholder_text='Enter the car id',corner_radius=10,fg_color='blue')
+      car_id.pack(pady=10)
+
+      CTkButton(master=self.rent_car_Frame,text='Back to User Portal',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+      rent_car_window.mainloop()
+
    
-      
 
 
 # class User(Account):
