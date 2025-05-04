@@ -20,19 +20,22 @@ from ConnectionString import connection_string_areeba
 
 
 
-def messagebox(title, message,error=False):
+def messagebox(title, message,error=False,button='ok'):
     ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
-    top = CTkToplevel()
-    top.title(title)
-    top.geometry("300x200")
-    top.resizable(False, False)
-    if error==True:
+   top = CTkToplevel()
+   top.title(title)
+   top.geometry("300x200")
+   top.resizable(False, False)
+   if error==True:
         CTkLabel(top,text="⚠️",font=("Arial", 24)).pack(pady=10)
     # Message
-    CTkLabel(top, text=message).pack(pady=30)
-    
-    # OK button (closes the window)
-    CTkButton(top, text="OK", command=top.destroy).pack()
+   CTkLabel(top, text=message).pack(pady=30)
+   if button=='ok':
+      # OK button (closes the window)
+      CTkButton(top, text="OK", command=top.destroy).pack()
+   elif button=='next':
+      CTkButton(top, text="Next", command=top.destroy).pack()
+   
 
 
 class RecordManagement:
@@ -44,8 +47,6 @@ class RecordManagement:
          self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
-         
-
       except Exception as e:
          print('connection error')
          messagebox('Connection Error',e,error=True)
@@ -53,6 +54,7 @@ class RecordManagement:
       else:
          self.connection.autocommit=True
          self.cursor=self.connection.cursor()
+
 
    def insert(self,*args):
       
@@ -83,6 +85,7 @@ class RecordManagement:
          # elif operation=="balance check":
          #    self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
          #    return self.cursor.fetchone()
+
    def update(self,operation,*args):
       if self.TableName=='Users':
          if operation=="update_balance":
@@ -95,13 +98,26 @@ class RecordManagement:
          
       
       messagebox('Success','Balance updated successfully')
+
    def delete(self,operation,*args):
       if self.TableName=='Cars':
          if operation=="delete_car":
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          self.cursor.execute(f"DELETE * fROM {self.TableName} WHERE CAR_ID='{args[0]}'")
 
-   def print_table(self,operation):
+   def remove_entry(self,carid,model):
+      try:
+         #querey to remove car from table refering to car id and model
+         print(f'{carid}, {model} removed')
+         messagebox(title='Success',message='Car successfully removed',button='next')
+         pass
+      except:
+         #####
+         messagebox(title='Error',message='An unknown error occurred.\nTry again',error=True)
+
+      
+
+   def print_table(self,*args,operation):
       if self.TableName=="Users":
          if operation=='rentals':
             try:
@@ -121,6 +137,7 @@ class RecordManagement:
                # # Create table
                table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
                table.pack(expand=True, fill="both", padx=20, pady=20)
+
 
                # # Add some styling
                table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
@@ -157,8 +174,103 @@ class RecordManagement:
 
             except:
                print('error occuredddddd')
-
          
+         elif operation=='removecar':
+            try:
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Car Options")
+
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT Car_ID, MODEL FROM {self.TableName} ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+
+               # # Convert to format CTkTable needs (list of lists)
+               table_data = [columns] + list(data)
+
+               # # Create table
+               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+               table.pack(expand=True, fill="both", padx=20, pady=20)
+
+               #entry for car id and car model 
+               id=CTkEntry(master=table_window,placeholder_text='Car ID')
+               id.pack(padx=10,pady=10)
+               model=CTkEntry(master=table_window,placeholder_text='Car Model')
+               model.pack(padx=10,pady=10)
+               
+               CTkButton(master=table_window,text='ENTER',command=lambda: self.remove_entry(id.get(),model.get())).pack(pady=10)
+               
+
+               # # Add some styling
+               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+               table_window.mainloop()
+            except:
+               print('errooorrr')
+            
+         elif operation=='reservedcars':
+            try:
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Reserved Cars")
+
+               # Fetch data without pandas warning
+               ##___query for fetching the cars ARE reserved________
+               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ReservationStatus = 'RESERVED' ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+               if len(data)==0:
+                  messagebox(title='Reserved Cars',message='No Cars Are Currently Reserved',button='ok')
+               else:
+                  # # Convert to format CTkTable needs (list of lists)
+                  table_data = [columns] + list(data)
+
+                  # # Create table
+                  table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+                  table.pack(expand=True, fill="both", padx=20, pady=20)
+
+                  # # Add some styling
+                  table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+                  table_window.mainloop()
+
+            except:
+               print('sommeee error ocurred')
+      elif self.TableName=='RentalHistory':
+         try:
+            if operation=='rentalhistory':
+               table_window= ctk.CTk()
+               table_window.geometry("800x400")
+               table_window.title("Rental History")
+
+               # Fetch data without pandas warning
+               self.cursor.execute(f"SELECT * FROM {self.TableName} ")
+               columns = [column[0] for column in self.cursor.description]  # Get column names
+               data = self.cursor.fetchall()
+               if len(data)==0:
+                     messagebox(title='Rental History',message='No Rental History Yet!',button='ok')
+               else:
+                  # # Convert to format CTkTable needs (list of lists)
+                  table_data = [columns] + list(data)
+
+                  # # Create table
+                  table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
+                  table.pack(expand=True, fill="both", padx=20, pady=20)
+
+                  # # Add some styling
+                  table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
+
+                  table_window.mainloop()
+
+         except:
+            print('errrorrr')
+
+               
+
+   def check_admin_credentials(self,username,password):
+      ## query for checking admin username and password from admin table
+      pass
 
 
 class Account(ABC):
@@ -308,10 +420,10 @@ class User(Account):
       self.user_window.geometry('450x450')
       self.user_frame =CTkFrame(user_window, width=500, height=500)
       self.user_frame.pack(pady=40)
-      CTkButton(master=self.user_frame,text='Rent a car',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='return car',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='View Balance',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='Update Balance',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='RENT A CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='RETURN CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
@@ -331,6 +443,9 @@ class User(Account):
       
       balancetxt.pack(pady=10)
       amount.pack(pady=10)
+
+      ## check lgegea kae amount int mae hai ya nhi 
+
       CTkButton(master=self.create_user_Frame,text='Add Amount',command=lambda: self.update_balance("add",amount.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{self.balance}")
       balancetxt.pack(pady=10)
@@ -411,6 +526,7 @@ class User(Account):
 #    def __init__(self,user_name,pass_word):
 #       Account.__init__(self,pass_word)
 #       self.username=user_name
+      
 class RentalHistory:
 
    def __init__(self,car_id=None,start_date=None,end_date=None,rental_amount=None):
@@ -443,34 +559,55 @@ class Admin(Account):
       password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='green')
       password.pack(pady=10)
       
-      CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=20)
+      CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get(),window=admin_login_window),corner_radius=10,fg_color='blue').pack(pady=20)
       admin_login_window.mainloop()
 
 
-   def ShowOperations(self,username,password):
+   def ShowOperations(self,username,password,window):
+
+      self.db=RecordManagement('Admin')
+      try:
+         self.db.check_admin_credentials(username,password)
+      except:
+         messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
+
+      else:
+         #destroy the login window
+         window.destroy()
+         # new window to show operations of admin
+         admin_window=ctk.CTk()
+         self.admin_window=admin_window
+         self.admin_window.title('Admin')
+         self.admin_window.geometry('450x450')
+         self.admin_frame =CTkFrame(admin_window, width=500, height=500)
+         self.admin_frame.pack(pady=40)
+         CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='REMOVE CAR',command=lambda: self.remove_car(),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',command= self.print_currently_reserved_cars,corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='VIEW COMPLETE RENTAL HISTORY',command=self.print_comp_rental_history,corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+
+         admin_window.mainloop()
+
+   def remove_car(self):
+      self.db=RecordManagement('Cars')
+      self.db.print_table(operation='removecar')
 
 
-      ## 1. query for checks kae username aur password sahi hain ya nhi
-
-      admin_window=ctk.CTk()
-      self.admin_window=admin_window
-      self.admin_window.title('Admin')
-      self.admin_window.geometry('450x450')
-      self.admin_frame =CTkFrame(admin_window, width=500, height=500)
-      self.admin_frame.pack(pady=40)
-      CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='REMOVE CAR',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
-
-      admin_window.mainloop()
 
    def print_user_rentals(self):
       self.db=RecordManagement('Users')
       self.db.print_table(operation='rentals')
 
+   def print_currently_reserved_cars(self):
+      self.db=RecordManagement('Cars')
+      self.db.print_table(operation='reservedcars')
+
+   def print_comp_rental_history(self):
+      self.db=RecordManagement('RentalHistory')
+      self.db.print_table(operation='rentalhistory')
 
 
    def back_home(self):
@@ -509,37 +646,10 @@ class Rental_System:
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
 
    def destroy_window(self):
-
       #exits the system
       self.root.quit()    
       self.root.destroy()
-       
-   # def admin_work(self):
-   #    if os.path.isfile(ADMIN_PASSWORD_FILE): ## checks if given path ki file exist krti hae 
-   #       print('file exists')
-   #       with open(ADMIN_PASSWORD_FILE) as pass_file:
-   #          p=pass_file.read().strip()
-   #       password=CTkInputDialog(text='Enter Password',title='Admin Login').get_input()
-         
-   #       if p==password:
-   #          print('good')
-   #          # messagebox('Success','Access Granted To Admin Account')
-   #          # Hide the main window
-   #          # self.root.withdraw()
-   #          self.admin=Admin(password)
-            
-   #          # Show the main window again
-            
-   #          # self.root.deiconify()
-   #          # print('hello')
-            
-   #       else: 
-   #          print('not gud')
-   #          messagebox('Access Blocked','Incorrect Password',error=True)
 
-   #       # Show the main window again
-   #       # self.root.deiconify()
-      
 
 
 
