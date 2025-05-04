@@ -82,9 +82,20 @@ class RecordManagement:
          if operation=="login":
             self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
             return self.cursor.fetchone()
-         # elif operation=="balance check":
-         #    self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
-         #    return self.cursor.fetchone()
+         
+         elif operation=="balance check":
+            self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
+            return self.cursor.fetchone()
+         elif operation=="checkcar":
+            self.cursor.execute(f"SELECT CAR_ID FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
+            return self.cursor.fetchone()
+      elif self.TableName=='Cars':
+         if operation=="check price":
+            self.cursor.execute(f"SELECT PricePerDay FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            return self.cursor.fetchone()
+         elif operation=="checkrented":
+            self.cursor.execute(f"SELECT RESERVATIONSTATUS FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            return self.cursor.fetchone()
 
    def update(self,operation,*args):
       if self.TableName=='Users':
@@ -505,6 +516,17 @@ class User(Account):
          print('unknown error')
 
    def rent_car_window(self):
+      self.db=RecordManagement("Users")
+      checkcar=self.db.fetch('checkcar',self.username)
+      if checkcar[0]!=None:
+         messagebox('Error','You have already rented a car',error=True)
+         return
+      else:
+         self.db=RecordManagement("Cars")
+         result=self.db.fetch('rentcar')
+         if len(result)==0:
+            messagebox('Error','No Cars Available for Rent',error=True)
+            return
       rent_car_window=ctk.CTk()
       self.rent_car_window=rent_car_window
       self.rent_car_window.title('Rent Car')
@@ -515,18 +537,77 @@ class User(Account):
       CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rent_car'),corner_radius=10,fg_color='blue').pack(pady=10)
       car_id=CTkEntry(master=self.rent_car_Frame,placeholder_text='Enter the car id',corner_radius=10,fg_color='blue')
       car_id.pack(pady=10)
+      selected_data = {"startdate": None, "enddate": None}
 
+      def open_calendar(date_type):
+         def get_date():
+            selected_date = cal.get_date()
+            selected_data[date_type] = selected_date
+            if date_type == "startdate":
+                  start_date_label.configure(text=f"Start Date: {selected_date}")
+            elif date_type == "enddate":
+                  end_date_label.configure(text=f"End Date: {selected_date}")
+            top.destroy()
+
+         top = Toplevel(self.rent_car_window)
+         top.title(f"Select {date_type.capitalize()}")
+
+         cal = Calendar(top, selectmode='day', date_pattern='yyyy-mm-dd')
+         cal.pack(pady=10)
+
+         ctk.CTkButton(top, text="OK", command=get_date).pack(pady=10)
+
+     
+      CTkButton(master=self.rent_car_Frame,
+               text="Pick Start Date",
+               command=lambda: open_calendar("startdate")).pack(pady=10)
+
+      start_date_label = CTkLabel(master=self.rent_car_Frame, text="No start date selected")
+      start_date_label.pack(pady=5)
+
+
+      CTkButton(master=self.rent_car_Frame,
+               text="Pick End Date",
+               command=lambda: open_calendar("enddate")).pack(pady=10)
+
+      end_date_label = CTkLabel(master=self.rent_car_Frame, text="No end date selected")
+      end_date_label.pack(pady=5)
+
+
+      CTkButton(master=self.rent_car_Frame,text='Rent Car',command=lambda:self.rent_car(car_id.get(),selected_data['startdate'],selected_data['enddate']),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.rent_car_Frame,text='Back to User Portal',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
       rent_car_window.mainloop()
+   
+
+def rent_car(self,car_id,start_date,end_date):
+     
+            self.db=RecordManagement("Cars")
+            rented=self.db.fetch('checkrented',car_id)
+            if rented[0]=='RESERVED':
+               messagebox('Error','Car is already rented',error=True)
+               return
+            result=self.db.fetch('check price',car_id)
+            price=result[0]
+            
+            total_amount=price*(int(end_date[8:0])-int(start_date[8:0]))
+            if total_amount>self.balance:
+               messagebox('Error','Insufficient Balance',error=True)
+               return
+            else:
+               
+               self.db.update('update_rented',car_id,'RESERVED')
+               self.db=RecordManagement("Users")
+               self.db.update_balance(self.username,self.balance-total_amount)
+              
+               self.db=RecordManagement("RentalHistory")
+               self.db.insert(self.username,car_id,start_date,end_date,total_amount)
+               messagebox('Success','Car Rented Successfully')
+
 
    
 
 
-# class User(Account):
-#    def __init__(self,user_name,pass_word):
-#       Account.__init__(self,pass_word)
-#       self.username=user_name
-      
+
 class RentalHistory:
 
    def __init__(self,car_id=None,start_date=None,end_date=None,rental_amount=None):
