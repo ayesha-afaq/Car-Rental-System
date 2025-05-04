@@ -5,6 +5,8 @@ from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CT
 from CTkTable import CTkTable
 from tkcalendar import Calendar
 from tkinter import Toplevel
+from datetime import date
+
 
 
 import pandas as pd
@@ -96,6 +98,10 @@ class RecordManagement:
          elif operation=="checkrented":
             self.cursor.execute(f"SELECT RESERVATIONSTATUS FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             return self.cursor.fetchone()
+      elif self.TableName=='RentalHistory':
+         if operation=="check_enddate":
+            self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            return self.cursor.fetchone()
 
    def update(self,operation,*args):
       if self.TableName=='Users':
@@ -103,9 +109,15 @@ class RecordManagement:
             self.cursor.execute(f"UPDATE {self.TableName} SET BALANCE={args[0]} WHERE USER_NAME='{args[1]}'")
          elif operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
+         elif operation=="update_carid":
+            self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID='{args[0]}' WHERE USER_NAME='{args[1]}'") 
       elif self.TableName=='Admin':
          if operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
+      elif self.TableName=='Cars':
+         if operation=="update_rented":
+            self.cursor.execute(f"UPDATE {self.TableName} SET ReservationStatus='{args[1]}' WHERE CAR_ID='{args[0]}'")
+         
          
       
       messagebox('Success','Balance updated successfully')
@@ -114,8 +126,7 @@ class RecordManagement:
       if self.TableName=='Cars':
          if operation=="delete_car":
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
-         self.cursor.execute(f"DELETE * fROM {self.TableName} WHERE CAR_ID='{args[0]}'")
-
+         
    def remove_entry(self,carid,model):
       try:
          #querey to remove car from table refering to car id and model
@@ -431,8 +442,8 @@ class User(Account):
       self.user_window.geometry('450x450')
       self.user_frame =CTkFrame(user_window, width=500, height=500)
       self.user_frame.pack(pady=40)
-      CTkButton(master=self.user_frame,text='RENT A CAR',corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='RETURN CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='RENT A CAR',command=self.rent_car_window,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='RETURN CAR',command=self.return_car,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
@@ -579,30 +590,54 @@ class User(Account):
       rent_car_window.mainloop()
    
 
-def rent_car(self,car_id,start_date,end_date):
-     
-            self.db=RecordManagement("Cars")
-            rented=self.db.fetch('checkrented',car_id)
-            if rented[0]=='RESERVED':
-               messagebox('Error','Car is already rented',error=True)
-               return
-            result=self.db.fetch('check price',car_id)
-            price=result[0]
-            
-            total_amount=price*(int(end_date[8:0])-int(start_date[8:0]))
-            if total_amount>self.balance:
-               messagebox('Error','Insufficient Balance',error=True)
-               return
-            else:
+   def rent_car(self,car_id,start_date,end_date):
+      
+               self.db=RecordManagement("Cars")
+               rented=self.db.fetch('checkrented',car_id)
+               if rented[0]=='RESERVED':
+                  messagebox('Error','Car is already rented',error=True)
+                  return
+               result=self.db.fetch('check price',car_id)
+               price=result[0]
                
-               self.db.update('update_rented',car_id,'RESERVED')
-               self.db=RecordManagement("Users")
-               self.db.update_balance(self.username,self.balance-total_amount)
-              
-               self.db=RecordManagement("RentalHistory")
-               self.db.insert(self.username,car_id,start_date,end_date,total_amount)
-               messagebox('Success','Car Rented Successfully')
+               total_amount=price*(int(end_date[8:0])-int(start_date[8:0]))
+               if total_amount>self.balance:
+                  messagebox('Error','Insufficient Balance',error=True)
+                  return
+               else:
+                  
+                  self.db.update('update_rented',car_id,'RESERVED')
+                  self.db=RecordManagement("Users")
+                  self.db.update("update_balance",self.username,self.balance-total_amount)
+                  self.db.update("update_carid",self.username,car_id)
+               
+                  self.db=RecordManagement("RentalHistory")
+                  self.db.insert(self.username,car_id,start_date,end_date,total_amount)
+                  messagebox('Success','Car Rented Successfully')
 
+   def return_car(self):
+      #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
+      self.db=RecordManagement("Users")
+      carid=self.db.fetch('checkcar',self.username)
+      self.db.update('update_carid',self.username,'NULL')
+      self.db=RecordManagement("Cars")
+      self.db.update('update_rented',carid[0],'NOT RESERVED')
+      self.db.update('update_carid',self.username,'NULL')
+      self.db=RecordManagement("RentalHistory")
+      end_date=self.db.fetch('check_enddate',carid[0])
+      if end_date[0]<date.today().isoformat():
+         
+         date_difference=(date.today()-end_date[0]).days
+         result=self.db.fetch('check price',carid[0])
+         price=result[0]
+         total_amount=price*date_difference  
+         self.db=RecordManagement("Users")
+         self.db.update("update_balance",self.username,self.balance-total_amount)   
+         self.balance=self.balance-total_amount
+         messagebox(f'Success','Car Returned Successfully\n  {total_amount} Amount deducted from your balance')
+      else:
+         messagebox('Success','Car Returned Successfully')
+        
 
    
 
