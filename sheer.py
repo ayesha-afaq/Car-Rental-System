@@ -18,7 +18,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_maham
+from ConnectionString import connection_string_areeba
 
 
 
@@ -46,7 +46,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_maham)
+         self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
       except Exception as e:
