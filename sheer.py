@@ -57,6 +57,8 @@ class RecordManagement:
          self.connection.autocommit=True
          self.cursor=self.connection.cursor()
 
+   def set_tablename(self,new_name):
+      self.TableName=new_name
 
    def insert(self,*args):
       
@@ -101,6 +103,10 @@ class RecordManagement:
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
             self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            return self.cursor.fetchone()
+      elif self.TableName=="Admin":
+         if operation=="check_admin":
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
             return self.cursor.fetchone()
 
    def update(self,operation,*args):
@@ -290,9 +296,9 @@ class RecordManagement:
 
                
 
-   def check_admin_credentials(self,username,password):
-      ## query for checking admin username and password from admin table
-      pass
+   # def check_admin_credentials(self,username,password):
+   #    ## query for checking admin username and password from admin table
+   #    pass
 
 
 class Account(ABC):
@@ -302,6 +308,7 @@ class Account(ABC):
       self.change_pass_window=change_pass_window
       self.change_pass_window.title('Change Password')
       self.pass_Frame=CTkFrame(self.change_pass_window,width=500, height=500)
+      self.db=RecordManagement(None)
       
       password=CTkEntry(master=self.pass_Frame,placeholder_text='Enter your new password',corner_radius=10,fg_color='blue')
       password.pack(pady=10)
@@ -310,11 +317,11 @@ class Account(ABC):
 
       def Change(password):
          if account=='Admin':
-            self.db=RecordManagement("Admin")
+            self.db.set_tablename="Admin"
             self.db.update("update_password",self.username,password)
             
          elif account=='User':
-            self.db=RecordManagement("Users")
+            self.db.set_tablename="Users"
             self.db.update("update_password",self.username,password)
             
 
@@ -332,6 +339,7 @@ class Car():
       self.Priceperday=None
       self.SeatingCapacity=None
       self.reserve=None
+      self.db=RecordManagement("Cars")
       self.Add_Car_Window()
 
    def Add_Car_Window(self):
@@ -362,12 +370,13 @@ class Car():
       self.Model=Model
       self.Priceperday=Priceperday
       self.SeatingCapacity=SeatingCap
-      self.db=RecordManagement("Cars")
+      
       self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
 
 
 class User(Account):
    def __init__(self):
+      self.db=RecordManagement("Users")
       self.username=None
       self.name=None
       self.password=None
@@ -418,7 +427,7 @@ class User(Account):
    def Login(self,username,password):
       # self.username=username
       # self.password=password
-      self.db=RecordManagement("Users")
+      
       result=self.db.fetch('login',username,password)
       if len(result)==0:
          messagebox('Login Failed','Invalid Username or Password',error=True)
@@ -475,11 +484,11 @@ class User(Account):
    def update_balance(self,operation,amount):
       if operation=='add':
          self.balance+=amount
-         self.db=RecordManagement("Users")
+         self.db.set_tablename="Users"
          self.db.update("update_balance",self.username,self.balance)
       elif operation=='deduct':
          self.balance-=amount
-         self.db=RecordManagement("Users")
+         self.db.set_tablename="Users"
          self.db.update(self.username,self.balance)
          messagebox('Success','Balance updated successfully')
       else:
@@ -493,7 +502,7 @@ class User(Account):
       self.balance=balance
       self.address=address
       
-      self.db=RecordManagement("Users")
+      
       self.db.insert(self.username,self.name,self.password,self.balance,self.address)
 
    def CreateUserWindow(self):
@@ -527,13 +536,13 @@ class User(Account):
          print('unknown error')
 
    def rent_car_window(self):
-      self.db=RecordManagement("Users")
+      self.db.set_tablename="Users"
       checkcar=self.db.fetch('checkcar',self.username)
       if checkcar[0]!=None:
          messagebox('Error','You have already rented a car',error=True)
          return
       else:
-         self.db=RecordManagement("Cars")
+         self.db.set_tablename="Cars"
          result=self.db.fetch('rentcar')
          if len(result)==0:
             messagebox('Error','No Cars Available for Rent',error=True)
@@ -544,7 +553,7 @@ class User(Account):
       self.rent_car_window.geometry('450x450')
       self.rent_car_Frame=CTkFrame(rent_car_window, width=500, height=500)
       self.rent_car_Frame.pack(pady=40)
-      self.db=RecordManagement("Cars")
+      
       CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rent_car'),corner_radius=10,fg_color='blue').pack(pady=10)
       car_id=CTkEntry(master=self.rent_car_Frame,placeholder_text='Enter the car id',corner_radius=10,fg_color='blue')
       car_id.pack(pady=10)
@@ -592,7 +601,7 @@ class User(Account):
 
    def rent_car(self,car_id,start_date,end_date):
       
-               self.db=RecordManagement("Cars")
+               self.db.set_tablename="Cars"
                rented=self.db.fetch('checkrented',car_id)
                if rented[0]=='RESERVED':
                   messagebox('Error','Car is already rented',error=True)
@@ -607,31 +616,32 @@ class User(Account):
                else:
                   
                   self.db.update('update_rented',car_id,'RESERVED')
-                  self.db=RecordManagement("Users")
+                  self.db.set_tablename="Users"
                   self.db.update("update_balance",self.username,self.balance-total_amount)
                   self.db.update("update_carid",self.username,car_id)
                
-                  self.db=RecordManagement("RentalHistory")
+                  self.db.set_tablename="RentalHistory"
                   self.db.insert(self.username,car_id,start_date,end_date,total_amount)
                   messagebox('Success','Car Rented Successfully')
 
    def return_car(self):
       #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
-      self.db=RecordManagement("Users")
+      self.db.set_tablename="Users"
       carid=self.db.fetch('checkcar',self.username)
       self.db.update('update_carid',self.username,'NULL')
-      self.db=RecordManagement("Cars")
+      self.db.set_tablename="Cars"
       self.db.update('update_rented',carid[0],'NOT RESERVED')
       self.db.update('update_carid',self.username,'NULL')
-      self.db=RecordManagement("RentalHistory")
+      self.db.set_tablename="RentalHistory"
       end_date=self.db.fetch('check_enddate',carid[0])
       if end_date[0]<date.today().isoformat():
          
          date_difference=(date.today()-end_date[0]).days
+         self.db.set_tablename="Cars"
          result=self.db.fetch('check price',carid[0])
          price=result[0]
          total_amount=price*date_difference  
-         self.db=RecordManagement("Users")
+         self.db.set_tablename="Users"
          self.db.update("update_balance",self.username,self.balance-total_amount)   
          self.balance=self.balance-total_amount
          messagebox(f'Success','Car Returned Successfully\n  {total_amount} Amount deducted from your balance')
@@ -668,6 +678,7 @@ class Admin(Account):
       self.admin_login_window.geometry('450x450')
       self.admin_login_Frame=CTkFrame(admin_login_window, width=500, height=500)
       self.admin_login_Frame.pack(pady=40)
+      self.db=RecordManagement('Admin')
       
       user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='green')
       user_name.pack(pady=10)
@@ -681,9 +692,9 @@ class Admin(Account):
 
    def ShowOperations(self,username,password,window):
 
-      self.db=RecordManagement('Admin')
+      self.db.set_tablename='Admin'
       try:
-         self.db.check_admin_credentials(username,password)
+         self.db.fetch("check_admin",username,password)
       except:
          messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
 
@@ -708,21 +719,21 @@ class Admin(Account):
          admin_window.mainloop()
 
    def remove_car(self):
-      self.db=RecordManagement('Cars')
+      self.db.set_tablename='Cars'
       self.db.print_table(operation='removecar')
 
 
 
    def print_user_rentals(self):
-      self.db=RecordManagement('Users')
+      self.db.set_tablename='Users'
       self.db.print_table(operation='rentals')
 
    def print_currently_reserved_cars(self):
-      self.db=RecordManagement('Cars')
+      self.db.set_tablename='Cars'
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
-      self.db=RecordManagement('RentalHistory')
+      self.db.set_tablename='RentalHistory'
       self.db.print_table(operation='rentalhistory')
 
 
