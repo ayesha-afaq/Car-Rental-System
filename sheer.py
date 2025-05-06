@@ -802,7 +802,7 @@ class Admin(Account):
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
-      self.db.set_tablename(new_name='RentalHistory')
+      self.db.TableName='RentalHistory'
       self.db.print_table(operation='rentalhistory')
 
 
@@ -837,19 +837,10 @@ class Rental_System:
          
       self.menu_frame =CTkFrame(root, width=500, height=500)
       self.menu_frame.pack(pady=40)
-      # CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
-      # CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.menu_frame, text='USER ACCOUNT', command=self.open_user,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.menu_frame, text='ADMINISTRATOR', command=self.open_admin,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
-   def open_user(self):
-        self.root.destroy()
-        User()
-
-   def open_admin(self):
-        self.root.destroy()
-        Admin()
-
+   
    def destroy_window(self):
       #exits the system
       self.root.quit()    
