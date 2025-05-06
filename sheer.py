@@ -322,7 +322,7 @@ class Account(ABC):
       pass
    
 
-class Car():
+class Car:
    def __init__(self):
       self.CarId=None
       self.Brand=None
