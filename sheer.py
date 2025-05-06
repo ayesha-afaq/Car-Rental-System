@@ -429,27 +429,78 @@ class User(Account):
       CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.Login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       login_window.mainloop()
 
-   def Login(self,username,password):
-      # self.username=username
-      # self.password=password
+   # def Login(self,username,password):
+   #    # self.username=username
+   #    # self.password=password
       
-      result=self.db.fetch('login',username,password)
-      print(result)
-      if result==None:
-         messagebox('Login Failed','Invalid Username or Password',error=True)
-         return
-      else:
-         messagebox('Login Success','Welcome to the Car Rental System :)')
-         self.username=result[1]
-         self.name=result[0]
-         self.password=result[2]
-         self.balance=result[3]
-         self.address=result[4]
-         self.carid=result[5]
+   #    result=self.db.fetch('login',username,password)
+   #    print(result)
+   #    if result==None:
+   #       messagebox('Login Failed','Invalid Username or Password',error=True)
+   #       return
+   #    else:
+   #       messagebox('Login Success','Welcome to the Car Rental System :)')
+   #       self.username=result[1]
+   #       self.name=result[0]
+   #       self.password=result[2]
+   #       self.balance=result[3]
+   #       self.address=result[4]
+   #       self.carid=result[5]
          
-         print('login success')
-         self.ShowOperations()
+   #       print('login success')
+   #       self.ShowOperations()
+   def login(self, username, password):
+    result = self.db.fetch('login', username, password)
+
+    if result is None:
+        messagebox('Login Failed', 'Invalid Username or Password', error=True)
+        return
+    else:
+        messagebox('Login Success', 'Welcome to the Car Rental System :)')
+        self.username = result[1]
+        self.name = result[0]
+        self.password = result[2]
+        self.balance = result[3]
+        self.address = result[4]
+        self.carid = result[5]
+
+        #  Destroy the login window here
+        if hasattr(self, 'login_window'):
+            self.login_window.destroy()
+
+        # Show main user operations window
+        self.ShowOperations()
+
       
+   def LoginWindow(self):
+    # Destroy the initial user portal window
+    if hasattr(self, 'user_window'):
+        self.user_window.destroy()
+
+    login_window = ctk.CTk()
+    self.login_window = login_window
+    self.login_window.title('Login')
+    self.login_window.geometry('450x450')
+    self.login_Frame = CTkFrame(login_window, width=500, height=500)
+    self.login_Frame.pack(pady=40)
+
+    user_name = CTkEntry(master=self.login_Frame, placeholder_text='Enter your username', corner_radius=10, fg_color='blue')
+    user_name.pack(pady=10)
+
+    password = CTkEntry(master=self.login_Frame, placeholder_text='Enter your password', corner_radius=10, fg_color='blue')
+    password.pack(pady=10)
+
+    CTkButton(
+        master=self.login_Frame,
+        text='Log in',
+        command=lambda: self.login(user_name.get(), password.get()),
+        corner_radius=10,
+        fg_color='blue'
+    ).pack(pady=10)
+
+    login_window.mainloop()
+
+
    def ShowOperations(self):
       ## inme change password ka option bhi rkhna hae jo admin aur user kai liyay same hoga account class sae inherit hoga
       user_window=ctk.CTk()
@@ -786,9 +837,18 @@ class Rental_System:
          
       self.menu_frame =CTkFrame(root, width=500, height=500)
       self.menu_frame.pack(pady=40)
-      CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(),corner_radius=10,fg_color='blue').pack(pady=10)
+      # CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
+      # CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame, text='USER ACCOUNT', command=self.open_user,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame, text='ADMINISTRATOR', command=self.open_admin,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
+   def open_user(self):
+        self.root.destroy()
+        User()
+
+   def open_admin(self):
+        self.root.destroy()
+        Admin()
 
    def destroy_window(self):
       #exits the system
