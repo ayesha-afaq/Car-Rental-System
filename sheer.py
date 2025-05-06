@@ -721,6 +721,8 @@ class Admin(Account):
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
+      # self.db=RecordManagement('RentalHistory')
+      
       self.db.set_tablename='RentalHistory'
       self.db.print_table(operation='rentalhistory')
 
