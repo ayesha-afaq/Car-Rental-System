@@ -19,8 +19,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_areeba
-
+from ConnectionString import connection_string_ayesha
 
 
 def messagebox(title, message,error=False,button='ok'):
@@ -47,7 +46,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
       except Exception as e:
@@ -121,7 +120,7 @@ class RecordManagement:
             self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID='{args[0]}' WHERE USER_NAME='{args[1]}'") 
       elif self.TableName=='Admin':
          if operation=="update_password":
-            self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
+            self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE ADMIN_NAME='{args[1]}'")
       elif self.TableName=='Cars':
          if operation=="update_rented":
             self.cursor.execute(f"UPDATE {self.TableName} SET ReservationStatus='{args[1]}' WHERE CAR_ID='{args[0]}'")
@@ -136,7 +135,7 @@ class RecordManagement:
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          
 
-   def print_table(self,*args,operation):
+   def print_table(self,operation):
       if self.TableName=="Users":
          if operation=='rentals':
             try:
@@ -294,27 +293,41 @@ class RecordManagement:
 
 class Account(ABC):
       
-   def ChangePassword(self,account):
+   def ChangePassword(self,account,username):
+
+      def Change(username,password,window):
+         if account=='Admin':
+            try:
+               self.db.TableName="Admin"
+               self.db.update("update_password",password,username)
+               messagebox('Success',message='Password Changed Successfully',button='ok')
+               window.destroy()
+            except:
+               messagebox('Error','Unknown Error Occurred',error=True,button='ok')
+
+         elif account=='User':
+            try:
+               self.db.TableName="Users"
+               self.db.update("update_password",password,username)
+               messagebox('Success',message='Password Changed Successfully',button='ok')
+               window.destroy()
+            except:
+               messagebox('Error','Unknown Error Occurred',error=True,button='ok')
+
       change_pass_window=ctk.CTk()
       self.change_pass_window=change_pass_window
       self.change_pass_window.title('Change Password')
-      self.pass_Frame=CTkFrame(self.change_pass_window,width=500, height=500)
+      self.change_pass_window.geometry('500x500')
+      self.pass_Frame=CTkFrame(master=self.change_pass_window,width=500, height=500)
+      self.pass_Frame.pack()
       self.db=RecordManagement(None)
       
       password=CTkEntry(master=self.pass_Frame,placeholder_text='Enter your new password',corner_radius=10,fg_color='blue')
       password.pack(pady=10)
-      CTkButton(master=self.pass_Frame,text='Enter',command=lambda: Change(password.get())).pack(pady=20)
+      CTkButton(master=self.pass_Frame,text='Enter',command=lambda: Change(username,password.get(),window=self.change_pass_window)).pack(pady=20)
+      self.change_pass_window.mainloop()
 
-
-      def Change(password):
-         if account=='Admin':
-            self.db.set_tablename="Admin"
-            self.db.update("update_password",self.username,password)
-            
-         elif account=='User':
-            self.db.set_tablename="Users"
-            self.db.update("update_password",self.username,password)
-            
+      
 
 
    @abstractmethod
@@ -682,6 +695,7 @@ class Admin(Account):
       user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='green')
       user_name.pack(pady=10)
       
+      
       password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='green')
       password.pack(pady=10)
       
@@ -689,16 +703,16 @@ class Admin(Account):
       admin_login_window.mainloop()
 
 
-   def ShowOperations(self,username,password,window):
+   def ShowOperations(self,user_name,password,window):
 
       self.db.set_tablename('Admin')
       try:
-         self.db.fetch("check_admin",username,password)
+         self.db.fetch("check_admin",user_name,password)
       except:
          messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
       self.db.set_tablename='Admin'
 
-      result=self.db.fetch("check_admin",username,password)
+      result=self.db.fetch("check_admin",user_name,password)
       if result==None:
          messagebox('Login Failed','Invalid Username or Password',error=True)
          return
@@ -716,31 +730,28 @@ class Admin(Account):
          CTkButton(master=self.admin_frame,text='REMOVE CAR',command=lambda: self.remove_car(),corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',command= self.print_currently_reserved_cars,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
-         CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin'),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin',username=user_name),corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='VIEW COMPLETE RENTAL HISTORY',command=self.print_comp_rental_history,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
 
          admin_window.mainloop()
 
    def remove_car(self):
-      self.db.set_tablename('Cars')
+      self.db.TableName='Cars'
       self.db.print_table(operation='removecar')
 
 
 
    def print_user_rentals(self):
-      self.db.set_tablename('Users')
+      self.db.TableName='Users'
       self.db.print_table(operation='rentals')
 
    def print_currently_reserved_cars(self):
-      self.db.set_tablename('Cars')
+      self.db.TableName='Cars'
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
-      self.db.set_tablename('RentalHistory')
-      # self.db=RecordManagement('RentalHistory')
-      
-      
+      self.db.set_tablename(new_name='RentalHistory')
       self.db.print_table(operation='rentalhistory')
 
 
