@@ -320,7 +320,7 @@ class Account(ABC):
       pass
    
 
-class Car():
+class Car:
    def __init__(self):
       self.CarId=None
       self.Brand=None
@@ -713,17 +713,16 @@ class Admin(Account):
 
 
    def print_user_rentals(self):
-      self.db.set_tablename='Users'
+      self.db.TableName='Users'
       self.db.print_table(operation='rentals')
 
    def print_currently_reserved_cars(self):
-      self.db.set_tablename='Cars'
+      self.db.TableName='Cars'
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
       # self.db=RecordManagement('RentalHistory')
-      
-      self.db.set_tablename='RentalHistory'
+      self.db.set_tablename(new_name='RentalHistory')
       self.db.print_table(operation='rentalhistory')
 
 
