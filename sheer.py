@@ -1,4 +1,4 @@
-import os
+
 import pyodbc
 import customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
@@ -107,7 +107,7 @@ class RecordManagement:
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
          if operation=="check_admin":
-            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ADMIN_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
             return self.cursor.fetchone()
 
    def update(self,operation,*args):
@@ -135,17 +135,6 @@ class RecordManagement:
          if operation=="delete_car":
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          
-   def remove_entry(self,carid,model):
-      try:
-         #querey to remove car from table refering to car id and model
-         print(f'{carid}, {model} removed')
-         messagebox(title='Success',message='Car successfully removed',button='next')
-         pass
-      except:
-         #####
-         messagebox(title='Error',message='An unknown error occurred.\nTry again',error=True)
-
-      
 
    def print_table(self,*args,operation):
       if self.TableName=="Users":
@@ -546,8 +535,9 @@ class User(Account):
 
    def rent_car_window(self):
       self.db.set_tablename("Users")
-      checkcar=self.db.fetch('checkcar',self.username)
-      if checkcar[0]!=None:
+      # checkcar=self.db.fetch('checkcar',self.username)
+      # if checkcar[0]!=None:
+      if self.carid==None:
          messagebox('Error','You have already rented a car',error=True)
          return
       else:
@@ -706,7 +696,12 @@ class Admin(Account):
          self.db.fetch("check_admin",username,password)
       except:
          messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
+      self.db.set_tablename='Admin'
 
+      result=self.db.fetch("check_admin",username,password)
+      if result==None:
+         messagebox('Login Failed','Invalid Username or Password',error=True)
+         return
       else:
          #destroy the login window
          window.destroy()
@@ -743,6 +738,9 @@ class Admin(Account):
 
    def print_comp_rental_history(self):
       self.db.set_tablename('RentalHistory')
+      # self.db=RecordManagement('RentalHistory')
+      
+      
       self.db.print_table(operation='rentalhistory')
 
 
