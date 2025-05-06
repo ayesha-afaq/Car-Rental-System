@@ -133,17 +133,6 @@ class RecordManagement:
          if operation=="delete_car":
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          
-   def remove_entry(self,carid,model):
-      try:
-         #querey to remove car from table refering to car id and model
-         print(f'{carid}, {model} removed')
-         messagebox(title='Success',message='Car successfully removed',button='next')
-         pass
-      except:
-         #####
-         messagebox(title='Error',message='An unknown error occurred.\nTry again',error=True)
-
-      
 
    def print_table(self,*args,operation):
       if self.TableName=="Users":
