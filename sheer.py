@@ -6,6 +6,7 @@ from CTkTable import CTkTable
 from tkcalendar import Calendar
 from tkinter import Toplevel
 from datetime import date
+from decimal import Decimal
 
 
 
@@ -18,7 +19,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_maham
+from ConnectionString import connection_string_areeba
 
 
 
@@ -46,7 +47,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_maham)
+         self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
       except Exception as e:
@@ -112,7 +113,8 @@ class RecordManagement:
    def update(self,operation,*args):
       if self.TableName=='Users':
          if operation=="update_balance":
-            self.cursor.execute(f"UPDATE {self.TableName} SET BALANCE={args[0]} WHERE USER_NAME='{args[1]}'")
+            print(args[0],args[1])
+            self.cursor.execute(f"UPDATE {self.TableName} SET BALANCE={Decimal(args[1])} WHERE USER_NAME='{args[0]}'")
          elif operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
          elif operation=="update_carid":
@@ -382,6 +384,7 @@ class User(Account):
       self.password=None
       self.balance=None
       self.address=None
+      self.carid=None
       user_window=ctk.CTk()
       self.user_window=user_window
       self.user_window.title('User Portal')
@@ -429,16 +432,18 @@ class User(Account):
       # self.password=password
       
       result=self.db.fetch('login',username,password)
-      if len(result)==0:
+      print(result)
+      if result==None:
          messagebox('Login Failed','Invalid Username or Password',error=True)
          return
       else:
          messagebox('Login Success','Welcome to the Car Rental System :)')
-         self.username=result[0]
-         self.name=result[1]
+         self.username=result[1]
+         self.name=result[0]
          self.password=result[2]
          self.balance=result[3]
          self.address=result[4]
+         self.carid=result[5]
          
          print('login success')
          self.ShowOperations()
@@ -469,26 +474,30 @@ class User(Account):
       # self.db=RecordManagement("Users")
       # result=self.db.fetch('balance check',self.username)
       # balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
-      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Enter the amount to be added to your balance :")
-      amount=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter amount',corner_radius=10,fg_color='blue')
+      balancetxt=CTkLabel(master=self.update_balance_window_Frame,text=f"Enter the amount to be added to your balance :")
+      amount=CTkEntry(master=self.update_balance_window_Frame,placeholder_text='Enter amount',corner_radius=10,fg_color='blue')
       
       balancetxt.pack(pady=10)
       amount.pack(pady=10)
 
       ## check lgegea kae amount int mae hai ya nhi 
+      balancelabel=CTkLabel(master=self.update_balance_window_Frame,text=f"Your Current Balance is :{self.balance}")
+      CTkButton(master=self.update_balance_window_Frame,text='Add Amount',command=lambda: self.update_balance("add",amount.get(),balancelabel),corner_radius=10,fg_color='blue').pack(pady=10)
+      balancelabel.pack(pady=10)
+      update_balance_window.mainloop()
 
-      CTkButton(master=self.create_user_Frame,text='Add Amount',command=lambda: self.update_balance("add",amount.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-      balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{self.balance}")
-      balancetxt.pack(pady=10)
-
-   def update_balance(self,operation,amount):
+   def update_balance(self,operation,amount,balancelabel):
+      
       if operation=='add':
-         self.balance+=amount
-         self.db.set_tablename="Users"
+         self.balance+=Decimal(amount)
+         self.db.set_tablename("Users")
+         
          self.db.update("update_balance",self.username,self.balance)
+         balancelabel.configure(text=f"Your Current Balance is :{self.balance}")
+         
       elif operation=='deduct':
          self.balance-=amount
-         self.db.set_tablename="Users"
+         self.db.set_tablename("Users")
          self.db.update(self.username,self.balance)
          messagebox('Success','Balance updated successfully')
       else:
@@ -536,13 +545,13 @@ class User(Account):
          print('unknown error')
 
    def rent_car_window(self):
-      self.db.set_tablename="Users"
+      self.db.set_tablename("Users")
       checkcar=self.db.fetch('checkcar',self.username)
       if checkcar[0]!=None:
          messagebox('Error','You have already rented a car',error=True)
          return
       else:
-         self.db.set_tablename="Cars"
+         self.db.set_tablename("Cars")
          result=self.db.fetch('rentcar')
          if len(result)==0:
             messagebox('Error','No Cars Available for Rent',error=True)
@@ -601,7 +610,7 @@ class User(Account):
 
    def rent_car(self,car_id,start_date,end_date):
       
-               self.db.set_tablename="Cars"
+               self.db.set_tablename("Cars")
                rented=self.db.fetch('checkrented',car_id)
                if rented[0]=='RESERVED':
                   messagebox('Error','Car is already rented',error=True)
@@ -616,32 +625,32 @@ class User(Account):
                else:
                   
                   self.db.update('update_rented',car_id,'RESERVED')
-                  self.db.set_tablename="Users"
+                  self.db.set_tablename("Users")
                   self.db.update("update_balance",self.username,self.balance-total_amount)
                   self.db.update("update_carid",self.username,car_id)
                
-                  self.db.set_tablename="RentalHistory"
+                  self.db.set_tablename("RentalHistory")
                   self.db.insert(self.username,car_id,start_date,end_date,total_amount)
                   messagebox('Success','Car Rented Successfully')
 
    def return_car(self):
       #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
-      self.db.set_tablename="Users"
+      self.db.set_tablename("Users")
       carid=self.db.fetch('checkcar',self.username)
       self.db.update('update_carid',self.username,'NULL')
-      self.db.set_tablename="Cars"
+      self.db.set_tablename("Cars")
       self.db.update('update_rented',carid[0],'NOT RESERVED')
       self.db.update('update_carid',self.username,'NULL')
-      self.db.set_tablename="RentalHistory"
+      self.db.set_tablename("RentalHistory")
       end_date=self.db.fetch('check_enddate',carid[0])
       if end_date[0]<date.today().isoformat():
          
          date_difference=(date.today()-end_date[0]).days
-         self.db.set_tablename="Cars"
+         self.db.set_tablename("Cars")
          result=self.db.fetch('check price',carid[0])
          price=result[0]
          total_amount=price*date_difference  
-         self.db.set_tablename="Users"
+         self.db.set_tablename("Users")
          self.db.update("update_balance",self.username,self.balance-total_amount)   
          self.balance=self.balance-total_amount
          messagebox(f'Success','Car Returned Successfully\n  {total_amount} Amount deducted from your balance')
@@ -692,7 +701,7 @@ class Admin(Account):
 
    def ShowOperations(self,username,password,window):
 
-      self.db.set_tablename='Admin'
+      self.db.set_tablename('Admin')
       try:
          self.db.fetch("check_admin",username,password)
       except:
@@ -719,21 +728,21 @@ class Admin(Account):
          admin_window.mainloop()
 
    def remove_car(self):
-      self.db.set_tablename='Cars'
+      self.db.set_tablename('Cars')
       self.db.print_table(operation='removecar')
 
 
 
    def print_user_rentals(self):
-      self.db.set_tablename='Users'
+      self.db.set_tablename('Users')
       self.db.print_table(operation='rentals')
 
    def print_currently_reserved_cars(self):
-      self.db.set_tablename='Cars'
+      self.db.set_tablename('Cars')
       self.db.print_table(operation='reservedcars')
 
    def print_comp_rental_history(self):
-      self.db.set_tablename='RentalHistory'
+      self.db.set_tablename('RentalHistory')
       self.db.print_table(operation='rentalhistory')
 
 
