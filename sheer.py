@@ -1,4 +1,4 @@
-import os
+
 import pyodbc
 import customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
@@ -18,7 +18,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_areeba
+from ConnectionString import connection_string_ayesha
 
 
 
@@ -46,7 +46,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
       except Exception as e:
@@ -106,7 +106,7 @@ class RecordManagement:
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
          if operation=="check_admin":
-            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ADMIN_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
             return self.cursor.fetchone()
 
    def update(self,operation,*args):
@@ -680,13 +680,12 @@ class Admin(Account):
 
 
    def ShowOperations(self,username,password,window):
-
       self.db.set_tablename='Admin'
-      try:
-         self.db.fetch("check_admin",username,password)
-      except:
-         messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
 
+      result=self.db.fetch("check_admin",username,password)
+      if result==None:
+         messagebox('Login Failed','Invalid Username or Password',error=True)
+         return
       else:
          #destroy the login window
          window.destroy()
