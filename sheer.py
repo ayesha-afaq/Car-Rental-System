@@ -70,12 +70,12 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity) VALUES (?, ?, ?, ?)",
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?)",
                            (args[0], args[1], args[2],args[3],args[4]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (USER_ID, CAR_ID, START_DATE, END_DATE) VALUES (?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3]))
+                           f"INSERT INTO {self.TableName} (USER_NAME, CAR_ID, START_DATE, END_DATE,RENTAL_AMOUNT) VALUES (?, ?, ?, ?,?)",
+                           (args[0], args[1], args[2],args[3],args[4]))
          
       # elif self.TableName=='Admin':
       #    self.cursor.execute(
@@ -101,6 +101,9 @@ class RecordManagement:
          elif operation=="checkrented":
             self.cursor.execute(f"SELECT RESERVATIONSTATUS FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             return self.cursor.fetchone()
+         elif operation=="rentcar":
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ReservationStatus='UNRESERVED'")
+            return self.cursor.fetchall()
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
             self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
@@ -118,7 +121,11 @@ class RecordManagement:
          elif operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
          elif operation=="update_carid":
-            self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID='{args[0]}' WHERE USER_NAME='{args[1]}'") 
+            # self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID='{args[1]}' WHERE USER_NAME='{args[0]}'") 
+            self.cursor.execute(
+                f"UPDATE {self.TableName} SET CAR_ID = ? WHERE USER_NAME = ?",
+                (args[1], args[0])
+            )
       elif self.TableName=='Admin':
          if operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
@@ -128,7 +135,7 @@ class RecordManagement:
          
          
       
-      messagebox('Success','Balance updated successfully')
+      
 
    def delete(self,operation,*args):
       if self.TableName=='Cars':
@@ -136,7 +143,7 @@ class RecordManagement:
             self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
          
 
-   def print_table(self,*args,operation):
+   def print_table(self,operation,*args):
       if self.TableName=="Users":
          if operation=='rentals':
             try:
@@ -175,7 +182,7 @@ class RecordManagement:
                table_window.title("Car Options")
 
                # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ")
+               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE RESERVATIONSTATUS='UNRESERVED'") 
                columns = [column[0] for column in self.cursor.description]  # Get column names
                data = self.cursor.fetchall()
 
@@ -308,11 +315,11 @@ class Account(ABC):
 
       def Change(password):
          if account=='Admin':
-            self.db.set_tablename="Admin"
+            self.db.set_tablename("Admin")
             self.db.update("update_password",self.username,password)
             
          elif account=='User':
-            self.db.set_tablename="Users"
+            self.db.set_tablename("Users")
             self.db.update("update_password",self.username,password)
             
 
@@ -537,13 +544,14 @@ class User(Account):
       self.db.set_tablename("Users")
       # checkcar=self.db.fetch('checkcar',self.username)
       # if checkcar[0]!=None:
-      if self.carid==None:
+      if self.carid!=None:
          messagebox('Error','You have already rented a car',error=True)
          return
       else:
          self.db.set_tablename("Cars")
          result=self.db.fetch('rentcar')
-         if len(result)==0:
+         print(result)
+         if result==[]:
             messagebox('Error','No Cars Available for Rent',error=True)
             return
       rent_car_window=ctk.CTk()
@@ -553,7 +561,7 @@ class User(Account):
       self.rent_car_Frame=CTkFrame(rent_car_window, width=500, height=500)
       self.rent_car_Frame.pack(pady=40)
       
-      CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rent_car'),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rentcar'),corner_radius=10,fg_color='blue').pack(pady=10)
       car_id=CTkEntry(master=self.rent_car_Frame,placeholder_text='Enter the car id',corner_radius=10,fg_color='blue')
       car_id.pack(pady=10)
       selected_data = {"startdate": None, "enddate": None}
@@ -606,9 +614,10 @@ class User(Account):
                   messagebox('Error','Car is already rented',error=True)
                   return
                result=self.db.fetch('check price',car_id)
-               price=result[0]
+               price=Decimal(result[0])
                
-               total_amount=price*(int(end_date[8:0])-int(start_date[8:0]))
+               total_amount=price*(Decimal(end_date[9:])-Decimal(start_date[9:]))
+               print(total_amount)
                if total_amount>self.balance:
                   messagebox('Error','Insufficient Balance',error=True)
                   return
@@ -616,8 +625,10 @@ class User(Account):
                   
                   self.db.update('update_rented',car_id,'RESERVED')
                   self.db.set_tablename("Users")
-                  self.db.update("update_balance",self.username,self.balance-total_amount)
-                  self.db.update("update_carid",self.username,car_id)
+                  self.balance=self.balance-total_amount
+                  self.db.update("update_balance",self.username,self.balance)
+                  self.carid=car_id
+                  self.db.update("update_carid",self.username,self.carid)
                
                   self.db.set_tablename("RentalHistory")
                   self.db.insert(self.username,car_id,start_date,end_date,total_amount)
@@ -626,18 +637,18 @@ class User(Account):
    def return_car(self):
       #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
       self.db.set_tablename("Users")
-      carid=self.db.fetch('checkcar',self.username)
-      self.db.update('update_carid',self.username,'NULL')
+      # carid=self.db.fetch('checkcar',self.username)
+      self.db.update('update_carid',self.username,None)
       self.db.set_tablename("Cars")
-      self.db.update('update_rented',carid[0],'NOT RESERVED')
-      self.db.update('update_carid',self.username,'NULL')
+      self.db.update('update_rented',self.carid,'UNRESERVED')
+      
       self.db.set_tablename("RentalHistory")
-      end_date=self.db.fetch('check_enddate',carid[0])
+      end_date=self.db.fetch('check_enddate',self.carid)
       if end_date[0]<date.today().isoformat():
          
          date_difference=(date.today()-end_date[0]).days
          self.db.set_tablename("Cars")
-         result=self.db.fetch('check price',carid[0])
+         result=self.db.fetch('check price',self.carid)
          price=result[0]
          total_amount=price*date_difference  
          self.db.set_tablename("Users")
