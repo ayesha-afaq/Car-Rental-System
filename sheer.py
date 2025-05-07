@@ -520,8 +520,8 @@ class User(Account):
       CTkButton(master=self.user_frame,text='RETURN CAR',command=self.return_car,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(username=self.username,account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(self.user_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
    def update_balance_ui(self):
@@ -597,9 +597,9 @@ class User(Account):
       CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),user_name.get(),password.get(),balance.get(),address.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       create_user_window.mainloop()
 
-   def back_home(self):
+   def back_home(self,window):
       try:
-         self.user_window.destroy()
+         window.destroy()
          print('window destroyed')
       except:
          print('unknown error')
@@ -666,7 +666,7 @@ class User(Account):
 
 
       CTkButton(master=self.rent_car_Frame,text='Rent Car',command=lambda:self.rent_car(car_id.get(),selected_data['startdate'],selected_data['enddate']),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.rent_car_Frame,text='Back to User Portal',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.rent_car_Frame,text='Back to User Portal',command=lambda: self.back_home(self.rent_car_window),corner_radius=10,fg_color='blue').pack(pady=10)
       rent_car_window.mainloop()
    
 
@@ -708,7 +708,7 @@ class User(Account):
       
       self.db.set_tablename("RentalHistory")
       end_date=self.db.fetch('check_enddate',self.carid)
-      if end_date[0]<date.today().isoformat():
+      if end_date[0].isoformat()<date.today().isoformat():
          
          date_difference=(date.today()-end_date[0]).days
          self.db.set_tablename("Cars")
