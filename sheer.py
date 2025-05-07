@@ -19,7 +19,7 @@ ctk.set_default_color_theme('green')
 
 
 # Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_maham
 
 
 def messagebox(title, message,error=False,button='ok'):
@@ -46,7 +46,7 @@ class RecordManagement:
       try:
          # with open(Connection_String) as cs_file:
             # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_maham)
          print('connected to database')
          
       except Exception as e:
@@ -424,22 +424,22 @@ class User(Account):
       balancetxt.pack(pady=10)
       view_balance_window.mainloop()
 
-   def LoginWindow(self):
-      login_window=ctk.CTk()
-      self.login_window=login_window
-      self.login_window.title('Login')
-      self.login_window.geometry('450x450')
-      self.login_Frame=CTkFrame(login_window, width=500, height=500)
-      self.login_Frame.pack(pady=40)
-      # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
+   # def LoginWindow(self):
+   #    login_window=ctk.CTk()
+   #    self.login_window=login_window
+   #    self.login_window.title('Login')
+   #    self.login_window.geometry('450x450')
+   #    self.login_Frame=CTkFrame(login_window, width=500, height=500)
+   #    self.login_Frame.pack(pady=40)
+   #    # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
       
-      user_name=CTkEntry(master=self.login_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
-      user_name.pack(pady=10)
+   #    user_name=CTkEntry(master=self.login_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
+   #    user_name.pack(pady=10)
       
-      password=CTkEntry(master=self.login_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
-      password.pack(pady=10)
-      CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.Login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-      login_window.mainloop()
+   #    password=CTkEntry(master=self.login_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
+   #    password.pack(pady=10)
+   #    CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+   #    login_window.mainloop()
 
    # def Login(self,username,password):
    #    # self.username=username
