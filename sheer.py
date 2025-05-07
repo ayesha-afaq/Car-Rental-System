@@ -405,7 +405,7 @@ class User(Account):
       self.user_window.geometry('450x450')
       self.user_Frame=CTkFrame(user_window, width=500, height=500)
       self.user_Frame.pack(pady=40)
-      CTkButton(master=self.user_Frame,text='Sign in',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_Frame,text='Sign up',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_Frame,text='Log in',command=lambda: self.LoginWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
       user_window.mainloop()
       #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
