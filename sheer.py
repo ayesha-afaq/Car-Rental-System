@@ -152,7 +152,7 @@ class RecordManagement:
                table_window.title("User Rentals")
 
                # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT * FROM {self.TableName}")
+               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE Car_ID IS NOT NULL")
                columns = [column[0] for column in self.cursor.description]  # Get column names
                data = self.cursor.fetchall()
 
@@ -334,7 +334,12 @@ class Account(ABC):
       CTkButton(master=self.pass_Frame,text='Enter',command=lambda: Change(username,password.get(),window=self.change_pass_window)).pack(pady=20)
       self.change_pass_window.mainloop()
 
-      
+   def back_home(self,window):
+      try:
+         window.destroy()
+         print('admin window destroyed')
+      except:
+         print('unknown error')
 
 
    @abstractmethod
@@ -597,13 +602,6 @@ class User(Account):
       CTkButton(master=self.create_user_Frame,text='Create User',command=lambda: self.CreateUser(name.get(),user_name.get(),password.get(),balance.get(),address.get()),corner_radius=10,fg_color='blue').pack(pady=10)
       create_user_window.mainloop()
 
-   def back_home(self,window):
-      try:
-         window.destroy()
-         print('window destroyed')
-      except:
-         print('unknown error')
-
    def rent_car_window(self):
       self.db.set_tablename("Users")
       # checkcar=self.db.fetch('checkcar',self.username)
@@ -794,7 +792,7 @@ class Admin(Account):
          CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin',username=user_name),corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='VIEW COMPLETE RENTAL HISTORY',command=self.print_comp_rental_history,corner_radius=10,fg_color='blue').pack(pady=10)
-         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=self.back_home,corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=lambda: self.back_home(window=self.admin_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
          admin_window.mainloop()
 
@@ -817,12 +815,7 @@ class Admin(Account):
       self.db.print_table(operation='rentalhistory')
 
 
-   def back_home(self):
-      try:
-         self.admin_window.destroy()
-         print('admin window destroyed')
-      except:
-         print('unknown error')
+
 
 
    
