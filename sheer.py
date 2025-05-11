@@ -20,12 +20,14 @@ ctk.set_default_color_theme('green')
 
 
 
-from ConnectionString import connection_string_areeba
+from ConnectionString import connection_string_ayesha
 
 class DuplicateEntryError(Exception):
     def __init__(self, field_name, value):
         super().__init__(f"{field_name.capitalize()} '{value}' already exists.")
         
+class InvalidEntry(Exception):
+   pass
 
 def messagebox(title, message,error=False,button='ok'):
     ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
@@ -49,8 +51,7 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-        
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
       except Exception as e:
@@ -145,7 +146,7 @@ class RecordManagement:
       
       
 
-   def delete(self,operation,*args):
+   def delete(self,operation,window,*args):
       if self.TableName=='Cars':
          if operation=="delete_car":
             try:
@@ -154,6 +155,7 @@ class RecordManagement:
                messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
             else:
                messagebox(title='Success',message='Car removed successfully!')
+               window.destroy()
 
 
    def print_table(self,operation):
@@ -236,7 +238,7 @@ class RecordManagement:
                id=CTkEntry(master=table_window,placeholder_text='Car ID')
                id.pack(padx=10,pady=10)
                
-               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',id.get())).pack(pady=10)
+               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',table_window,id.get())).pack(pady=10)
                
 
                # # Add some styling
@@ -245,8 +247,6 @@ class RecordManagement:
                table_window.mainloop()
             except:
                messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-            else:
-               table_window.destroy()
             
          elif operation=='reservedcars':
             try:
@@ -307,11 +307,6 @@ class RecordManagement:
             messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
 
                
-
-   # def check_admin_credentials(self,username,password):
-   #    ## query for checking admin username and password from admin table
-   #    pass
-
 
 class Account(ABC):
       
@@ -395,10 +390,9 @@ class Car:
       Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
 
-      # if CarID.get()==f'CR-{(brand.get())[0:3]}{model.get()}':
+      
       CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get(),self.car_window),corner_radius=10,fg_color='blue').pack(pady=10)
-      # else:
-      #    CTkLabel(master=self.car_Frame,text='Enter valid car id',fg_color='red').pack(pady=10)
+      
       
       car_window.mainloop()
 
@@ -415,9 +409,13 @@ class Car:
             if result==None:
                self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
             else:
-               messagebox(title='Invalid Entry',message='This CarID already exists!!',error=True,button='ok')
+               raise InvalidEntry('This Car ID Already Exists')
+               
          else:
-            messagebox(title='Invalid Entry',message='CarID is Not Accurate!',error=True,button='ok')
+            raise InvalidEntry('CarID is NOt Accurate!')
+
+      except InvalidEntry as e:
+         messagebox(title='Invalid Entry',message=f'{e}',error=True)
       except:
          messagebox(title='Unknown Error',message='An Unknown Error Occurred',error=True)
       else:
@@ -459,13 +457,13 @@ class User(Account):
 
   
    def login(self, username, password):
-    result = self.db.fetch('login', username, password)
+      result = self.db.fetch('login', username, password)
 
-    if result is None:
+      if result is None:
         messagebox('Login Failed', 'Invalid Username or Password', error=True)
         return
-    else:
-       
+      else:
+        messagebox('Login Success', 'Welcome to the Car Rental System :)')
         self.username = result[1]
         self.name = result[0]
         self.password = result[2]
@@ -811,21 +809,26 @@ class Admin(Account):
       except:
          messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
 
-
-
-
    def print_user_rentals(self):
-      self.db.TableName='Users'
-      self.db.print_table(operation='rentals')
-
+      try:
+         self.db.TableName='Users'
+         self.db.print_table(operation='rentals')
+      except:
+         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+         
    def print_currently_reserved_cars(self):
-      self.db.TableName='Cars'
-      self.db.print_table(operation='reservedcars')
+      try:
+         self.db.TableName='Cars'
+         self.db.print_table(operation='reservedcars')
+      except:
+         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
 
    def print_comp_rental_history(self):
-      self.db.TableName='RentalHistory'
-      self.db.print_table(operation='rentalhistory')
-
+      try:
+         self.db.TableName='RentalHistory'
+         self.db.print_table(operation='rentalhistory')
+      except:
+         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
 
 
 
@@ -842,7 +845,7 @@ class Rental_System:
          self.root,
          width=10,
          corner_radius=10,
-         text='Welcome To The Car Rental System\n',
+         text='WELCOME TO THE CAR RENTAL SYSTEM\n',
          font=("Times New Roman", 20)).pack(pady=20)
       header2=CTkLabel(
          self.root,
