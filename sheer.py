@@ -409,12 +409,14 @@ class Car:
             if result==None:
                self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
             else:
-               raise InvalidEntry('This Car ID Already Exists')
+               raise DuplicateEntryError('Car ID',self.CarId)
                
          else:
             raise InvalidEntry('CarID is NOt Accurate!')
 
       except InvalidEntry as e:
+         messagebox(title='Invalid Entry',message=f'{e}',error=True)
+      except DuplicateEntryError as e:
          messagebox(title='Invalid Entry',message=f'{e}',error=True)
       except:
          messagebox(title='Unknown Error',message='An Unknown Error Occurred',error=True)
