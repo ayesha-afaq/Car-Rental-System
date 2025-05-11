@@ -44,8 +44,6 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         # with open(Connection_String) as cs_file:
-            # self.cs=cs_file.read().strip()
          self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
@@ -139,7 +137,7 @@ class RecordManagement:
       
       
 
-   def delete(self,operation,*args):
+   def delete(self,operation,window,*args):
       if self.TableName=='Cars':
          if operation=="delete_car":
             try:
@@ -148,6 +146,7 @@ class RecordManagement:
                messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
             else:
                messagebox(title='Success',message='Car removed successfully!')
+               window.destroy()
 
 
    def print_table(self,operation):
@@ -230,7 +229,7 @@ class RecordManagement:
                id=CTkEntry(master=table_window,placeholder_text='Car ID')
                id.pack(padx=10,pady=10)
                
-               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',id.get())).pack(pady=10)
+               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',table_window,id.get())).pack(pady=10)
                
 
                # # Add some styling
@@ -239,8 +238,6 @@ class RecordManagement:
                table_window.mainloop()
             except:
                messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-            else:
-               table_window.destroy()
             
          elif operation=='reservedcars':
             try:
