@@ -67,8 +67,8 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3],args[4]))
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?, ?, ?)",
+                           (args[0], args[1], args[2],args[3],args[4],args[5]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
                            f"INSERT INTO {self.TableName} (USER_NAME, CAR_ID, START_DATE, END_DATE,RENTAL_AMOUNT) VALUES (?, ?, ?, ?,?)",
@@ -98,6 +98,9 @@ class RecordManagement:
          elif operation=="rentcar":
             self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ReservationStatus='UNRESERVED'")
             return self.cursor.fetchall()
+         elif operation=='CheckCarId':
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE CAR_ID ='{args[0]}'")
+            return self.cursor.fetchone()
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
             self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
@@ -134,8 +137,13 @@ class RecordManagement:
    def delete(self,operation,*args):
       if self.TableName=='Cars':
          if operation=="delete_car":
-            self.cursor.execute(f"DELETE * FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
-         
+            try:
+               self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            except:
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+            else:
+               messagebox(title='Success',message='Car removed successfully!')
+
 
    def print_table(self,operation):
       if self.TableName=="Users":
@@ -165,7 +173,7 @@ class RecordManagement:
                table_window.mainloop()
 
             except:
-               print('error occuredddddd')
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
       
       elif self.TableName=="Cars":
          if operation=='rentcar':
@@ -193,9 +201,9 @@ class RecordManagement:
                table_window.mainloop()
 
             except:
-               print('error occuredddddd')
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
          
-         elif operation=='removecar':
+         elif operation=='delete_car':
             try:
                table_window= ctk.CTk()
                table_window.geometry("800x400")
@@ -213,13 +221,11 @@ class RecordManagement:
                table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
                table.pack(expand=True, fill="both", padx=20, pady=20)
 
-               #entry for car id and car model 
+               #entry for car id 
                id=CTkEntry(master=table_window,placeholder_text='Car ID')
                id.pack(padx=10,pady=10)
-               model=CTkEntry(master=table_window,placeholder_text='Car Model')
-               model.pack(padx=10,pady=10)
                
-               CTkButton(master=table_window,text='ENTER',command=lambda: self.remove_entry(id.get(),model.get())).pack(pady=10)
+               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',id.get())).pack(pady=10)
                
 
                # # Add some styling
@@ -227,7 +233,9 @@ class RecordManagement:
 
                table_window.mainloop()
             except:
-               print('errooorrr')
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+            else:
+               table_window.destroy()
             
          elif operation=='reservedcars':
             try:
@@ -256,7 +264,8 @@ class RecordManagement:
                   table_window.mainloop()
 
             except:
-               print('sommeee error ocurred')
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+
       elif self.TableName=='RentalHistory':
          try:
             if operation=='rentalhistory':
@@ -284,7 +293,7 @@ class RecordManagement:
                   table_window.mainloop()
 
          except:
-            print('errrorrr')
+            messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
 
                
 
@@ -361,6 +370,8 @@ class Car:
       self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
       self.car_Frame.pack(pady=40)
 
+      CTkLabel(master=self.car_window,text='Id Format: CR-brand first 3 letters + model\n e.g: bmw1989 ').pack(pady=10)
+
       CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
       CarID.pack(pady=10)
       brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
@@ -372,19 +383,37 @@ class Car:
       priceperday.pack(pady=10)
       Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
-      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get()),corner_radius=10,fg_color='blue').pack(pady=10)
+
+      # if CarID.get()==f'CR-{(brand.get())[0:3]}{model.get()}':
+      CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get(),self.car_window),corner_radius=10,fg_color='blue').pack(pady=10)
+      # else:
+      #    CTkLabel(master=self.car_Frame,text='Enter valid car id',fg_color='red').pack(pady=10)
+      
       car_window.mainloop()
 
-   def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap):
+   def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap,window):
       self.CarId=CarID
       self.Brand=Brand
       self.Model=Model
       self.Priceperday=Priceperday
       self.SeatingCapacity=SeatingCap
+      self.reservationstatus='UNRESERVED'
+      try:
+         if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
+            result=self.db.fetch('CheckCarId',self.CarId)
+            if result==None:
+               self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
+            else:
+               messagebox(title='Invalid Entry',message='This CarID already exists!!',error=True,button='ok')
+         else:
+            messagebox(title='Invalid Entry',message='CarID is Not Accurate!',error=True,button='ok')
+      except:
+         messagebox(title='Unknown Error',message='An Unknown Error Occurred',error=True)
+      else:
+         messagebox(title='Success',message='Car Successfully Added!')
+         window.destroy()
+
       
-      self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity)
-
-
 class User(Account):
    def __init__(self):
       self.db=RecordManagement("Users")
@@ -782,7 +811,7 @@ class Admin(Account):
          self.admin_frame =CTkFrame(admin_window, width=500, height=500)
          self.admin_frame.pack(pady=40)
          CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
-         CTkButton(master=self.admin_frame,text='REMOVE CAR',command=lambda: self.remove_car(),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='REMOVE CAR',command=self.remove_car,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',command= self.print_currently_reserved_cars,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account='Admin',username=user_name),corner_radius=10,fg_color='blue').pack(pady=10)
@@ -792,8 +821,12 @@ class Admin(Account):
          admin_window.mainloop()
 
    def remove_car(self):
-      self.db.TableName='Cars'
-      self.db.print_table(operation='removecar')
+      try:
+         self.db.TableName='Cars'
+         self.db.print_table(operation='delete_car')
+      except:
+         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+
 
 
 
