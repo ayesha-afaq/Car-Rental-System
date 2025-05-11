@@ -18,8 +18,7 @@ ctk.set_default_color_theme('green')
 
 
 
-# Connection_String=r"Driver={SQL Server};Server=DESKTOP-MGRV6IG\SQLEXPRESS;Database=project2;Trusted_Connection=yes;" ## apne pass krna hu tu apna naam daldena
-from ConnectionString import connection_string_maham
+from ConnectionString import connection_string_areeba
 
 
 def messagebox(title, message,error=False,button='ok'):
@@ -44,9 +43,8 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         # with open(Connection_String) as cs_file:
-            # self.cs=cs_file.read().strip()
-         self.connection=pyodbc.connect(connection_string_maham)
+        
+         self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
       except Exception as e:
@@ -76,10 +74,7 @@ class RecordManagement:
                            f"INSERT INTO {self.TableName} (USER_NAME, CAR_ID, START_DATE, END_DATE,RENTAL_AMOUNT) VALUES (?, ?, ?, ?,?)",
                            (args[0], args[1], args[2],args[3],args[4]))
          
-      # elif self.TableName=='Admin':
-      #    self.cursor.execute(
-      #                      f"INSERT INTO {self.TableName} (USER_NAME, PASSWORD) VALUES (?, ?)",
-      #                      (args[0], args[1]))
+     
          
    def fetch(self,operation,*args):
       if self.TableName=='Users':
@@ -721,7 +716,7 @@ class User(Account):
          messagebox('Success','Car Returned Successfully')
         
 
-   
+   #return late date,insert krne pr try except,gari li nai but return kr rhe ,passchange,gari rent krte v agr aik he screen mai dubara rent, dedeuct krne pr paisy
 
 
 
