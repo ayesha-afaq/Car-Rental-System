@@ -5,8 +5,10 @@ from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CT
 from CTkTable import CTkTable
 from tkcalendar import Calendar
 from tkinter import Toplevel
-from datetime import date
-from decimal import Decimal
+
+from decimal import Decimal,InvalidOperation
+from datetime import datetime, date
+
 
 
 
@@ -20,6 +22,10 @@ ctk.set_default_color_theme('green')
 
 from ConnectionString import connection_string_areeba
 
+class DuplicateEntryError(Exception):
+    def __init__(self, field_name, value):
+        super().__init__(f"{field_name.capitalize()} '{value}' already exists.")
+        
 
 def messagebox(title, message,error=False,button='ok'):
     ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
@@ -67,7 +73,7 @@ class RecordManagement:
      
       elif self.TableName=='Cars':
          self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?, ?, ?)",
+                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay_$, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?, ?, ?)",
                            (args[0], args[1], args[2],args[3],args[4],args[5]))
       elif self.TableName=='RentalHistory':
          self.cursor.execute(
@@ -88,9 +94,12 @@ class RecordManagement:
          elif operation=="checkcar":
             self.cursor.execute(f"SELECT CAR_ID FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
             return self.cursor.fetchone()
+         elif operation=="check_user":
+            self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
+            return self.cursor.fetchone()
       elif self.TableName=='Cars':
          if operation=="check price":
-            self.cursor.execute(f"SELECT PricePerDay FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            self.cursor.execute(f"SELECT PricePerDay_$ FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             return self.cursor.fetchone()
          elif operation=="checkrented":
             self.cursor.execute(f"SELECT RESERVATIONSTATUS FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
@@ -103,6 +112,8 @@ class RecordManagement:
             return self.cursor.fetchone()
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
+            print(args[0])
+            print(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
@@ -356,7 +367,7 @@ class Car:
       self.CarId=None
       self.Brand=None
       self.Model=None
-      self.Priceperday=None
+      self.PricePerDay=None
       self.SeatingCapacity=None
       self.reserve=None
       self.db=RecordManagement("Cars")
@@ -379,7 +390,7 @@ class Car:
       model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
       model.pack(pady=10)
       
-      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day',corner_radius=10,fg_color='blue')
+      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day in $',corner_radius=10,fg_color='blue')
       priceperday.pack(pady=10)
       Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
@@ -441,50 +452,12 @@ class User(Account):
       self.view_balance_window.geometry('450x450')
       self.view_balance_window_Frame=CTkFrame(view_balance_window, width=500, height=500)
       self.view_balance_window_Frame.pack(pady=40)
-      # self.db=RecordManagement("Users")
-      # result=self.db.fetch('balance check',self.username)
-      # balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+      
       balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{self.balance}")
       balancetxt.pack(pady=10)
       view_balance_window.mainloop()
 
-   # def LoginWindow(self):
-   #    login_window=ctk.CTk()
-   #    self.login_window=login_window
-   #    self.login_window.title('Login')
-   #    self.login_window.geometry('450x450')
-   #    self.login_Frame=CTkFrame(login_window, width=500, height=500)
-   #    self.login_Frame.pack(pady=40)
-   #    # CTkButton(master=self.admin_frame,text='ADD CAR',corner_radius=10,fg_color='blue').pack(pady=10)
-      
-   #    user_name=CTkEntry(master=self.login_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
-   #    user_name.pack(pady=10)
-      
-   #    password=CTkEntry(master=self.login_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
-   #    password.pack(pady=10)
-   #    CTkButton(master=self.login_Frame,text='Log in',command=lambda: self.login(user_name.get(),password.get()),corner_radius=10,fg_color='blue').pack(pady=10)
-   #    login_window.mainloop()
-
-   # def Login(self,username,password):
-   #    # self.username=username
-   #    # self.password=password
-      
-   #    result=self.db.fetch('login',username,password)
-   #    print(result)
-   #    if result==None:
-   #       messagebox('Login Failed','Invalid Username or Password',error=True)
-   #       return
-   #    else:
-   #       messagebox('Login Success','Welcome to the Car Rental System :)')
-   #       self.username=result[1]
-   #       self.name=result[0]
-   #       self.password=result[2]
-   #       self.balance=result[3]
-   #       self.address=result[4]
-   #       self.carid=result[5]
-         
-   #       print('login success')
-   #       self.ShowOperations()
+  
    def login(self, username, password):
     result = self.db.fetch('login', username, password)
 
@@ -492,7 +465,7 @@ class User(Account):
         messagebox('Login Failed', 'Invalid Username or Password', error=True)
         return
     else:
-        messagebox('Login Success', 'Welcome to the Car Rental System :)')
+       
         self.username = result[1]
         self.name = result[0]
         self.password = result[2]
@@ -571,37 +544,41 @@ class User(Account):
 
       ## check lgegea kae amount int mae hai ya nhi 
       balancelabel=CTkLabel(master=self.update_balance_window_Frame,text=f"Your Current Balance is :{self.balance}")
-      CTkButton(master=self.update_balance_window_Frame,text='Add Amount',command=lambda: self.update_balance("add",amount.get(),balancelabel),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.update_balance_window_Frame,text='Add Amount',command=lambda: self.update_balance(amount.get(),balancelabel),corner_radius=10,fg_color='blue').pack(pady=10)
       balancelabel.pack(pady=10)
       update_balance_window.mainloop()
 
-   def update_balance(self,operation,amount,balancelabel):
+   def update_balance(self,amount,balancelabel):
       
-      if operation=='add':
+      try:
          self.balance+=Decimal(amount)
          self.db.set_tablename("Users")
          
          self.db.update("update_balance",self.username,self.balance)
          balancelabel.configure(text=f"Your Current Balance is :{self.balance}")
+      except InvalidOperation:
+         messagebox('Error','enter a number' ,error=True)
          
-      elif operation=='deduct':
-         self.balance-=amount
-         self.db.set_tablename("Users")
-         self.db.update(self.username,self.balance)
-         messagebox('Success','Balance updated successfully')
-      else:
-         messagebox('Error','Invalid Operation',error=True)
-      # self.db=RecordManagement("Users")
-      # self.db.insert(self.username,self.name,self.password,self.balance,self.address)
+      
+      
    def CreateUser(self,name,username,password,balance,address):
-      self.username=username
-      self.name=name
-      self.password=password
-      self.balance=balance
-      self.address=address
+      self.db.set_tablename("Users")
+      existing = self.db.fetch('check_user',username)
       
-      
-      self.db.insert(self.username,self.name,self.password,self.balance,self.address)
+      try:
+         if existing:
+            raise DuplicateEntryError("Username", username)
+         self.db.insert(self.username,self.name,self.password,self.balance,self.address)
+      except DuplicateEntryError as e:
+         messagebox('Error',f'{e}',error=True)
+      except pyodbc.ProgrammingError:
+         messagebox('Error','enter a valid amount',error=True)
+      else:
+         self.username=username
+         self.name=name
+         self.password=password
+         self.balance=balance
+         self.address=address
 
    def CreateUserWindow(self):
       create_user_window=ctk.CTk()
@@ -723,16 +700,21 @@ class User(Account):
    def return_car(self):
       #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
       self.db.set_tablename("Users")
-      # carid=self.db.fetch('checkcar',self.username)
+   
       self.db.update('update_carid',self.username,None)
       self.db.set_tablename("Cars")
       self.db.update('update_rented',self.carid,'UNRESERVED')
       
       self.db.set_tablename("RentalHistory")
       end_date=self.db.fetch('check_enddate',self.carid)
-      if end_date[0].isoformat()<date.today().isoformat():
-         
-         date_difference=(date.today()-end_date[0]).days
+      print(end_date)
+      end_date_str = end_date[0]
+      end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+      if end_date_obj < date.today():
+         date_difference = (date.today() - end_date_obj).days
+            
+      
          self.db.set_tablename("Cars")
          result=self.db.fetch('check price',self.carid)
          price=result[0]
@@ -740,12 +722,14 @@ class User(Account):
          self.db.set_tablename("Users")
          self.db.update("update_balance",self.username,self.balance-total_amount)   
          self.balance=self.balance-total_amount
-         messagebox(f'Success','Car Returned Successfully\n  {total_amount} Amount deducted from your balance')
+         self.carid=None
+         messagebox('Success',f'Car Returned Successfully\n{total_amount} Amount deducted from your balance')
       else:
+         self.carid=None
          messagebox('Success','Car Returned Successfully')
         
 
-   #return late date,insert krne pr try except,gari li nai but return kr rhe ,passchange,gari rent krte v agr aik he screen mai dubara rent, dedeuct krne pr paisy
+   #return late date,insert krne pr try except,gari li nai but return kr rhe ,passchange,gari rent krte v agr aik he screen mai dubara rent, dedeuct krne pr paisy, 
 
 
 
