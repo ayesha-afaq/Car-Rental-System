@@ -66,22 +66,13 @@ class RecordManagement:
       self.TableName=new_name
 
    def insert(self,*args):
-      
       if self.TableName=='Users':
-         self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (USER_NAME,NAME, PASSWORD, BALANCE,ADDRESS) VALUES (?, ?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3],args[4]))
-     
+         self.cursor.execute(f"INSERT INTO {self.TableName} (USER_NAME,NAME, PASSWORD, BALANCE,ADDRESS) VALUES (?, ?, ?, ?, ?)",(args[0], args[1], args[2],args[3],args[4]))
       elif self.TableName=='Cars':
-         self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay_$, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?, ?, ?)",
-                           (args[0], args[1], args[2],args[3],args[4],args[5]))
+         self.cursor.execute(f"INSERT INTO {self.TableName} (CAR_ID, BRAND, MODEL, PricePerDay_$, SeatingCapacity,RESERVATIONSTATUS) VALUES (?, ?, ?, ?, ?, ?)",(args[0], args[1], args[2],args[3],args[4],args[5]))
       elif self.TableName=='RentalHistory':
-         self.cursor.execute(
-                           f"INSERT INTO {self.TableName} (USER_NAME, CAR_ID, START_DATE, END_DATE,RENTAL_AMOUNT) VALUES (?, ?, ?, ?,?)",
-                           (args[0], args[1], args[2],args[3],args[4]))
-         
-     
+         self.cursor.execute(f"INSERT INTO {self.TableName} (USER_NAME, CAR_ID, START_DATE, END_DATE,RENTAL_AMOUNT) VALUES (?, ?, ?, ?,?)",(args[0], args[1], args[2],args[3],args[4]))
+           
          
    def fetch(self,operation,*args):
       if self.TableName=='Users':
@@ -112,8 +103,6 @@ class RecordManagement:
             return self.cursor.fetchone()
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
-            print(args[0])
-            print(f"SELECT TOP 1 END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}' ORDER BY Rental_ID DESC")
             self.cursor.execute(f"SELECT TOP 1 END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}' ORDER BY Rental_ID DESC")
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
@@ -129,20 +118,13 @@ class RecordManagement:
          elif operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE USER_NAME='{args[1]}'")
          elif operation=="update_carid":
-            # self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID='{args[1]}' WHERE USER_NAME='{args[0]}'") 
-            self.cursor.execute(
-                f"UPDATE {self.TableName} SET CAR_ID = ? WHERE USER_NAME = ?",
-                (args[1], args[0])
-            )
+            self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID = ? WHERE USER_NAME = ?",(args[1], args[0]))
       elif self.TableName=='Admin':
          if operation=="update_password":
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD={args[0]} WHERE ADMIN_NAME='{args[1]}'")
       elif self.TableName=='Cars':
          if operation=="update_rented":
             self.cursor.execute(f"UPDATE {self.TableName} SET ReservationStatus='{args[1]}' WHERE CAR_ID='{args[0]}'")
-         
-         
-      
       
 
    def delete(self,operation,window,*args):
@@ -597,9 +579,7 @@ class User(Account):
                   self.db.set_tablename("Cars")
                   result=self.db.fetch('CheckCarId',car_id)
                   if result==None:
-                     raise ValueError('Car ID does not exist')
-                  
-                     
+                     raise ValueError('Car ID does not exist')  
                   self.db.set_tablename("Cars")
                   rented=self.db.fetch('checkrented',car_id)
                   if rented[0]=='RESERVED':
@@ -609,20 +589,17 @@ class User(Account):
                   price=Decimal(result[0])
                   start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
                   end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
-
                   if start_dt > end_dt:
                         messagebox('Error', 'Start date cannot be after end date', error=True)
                         return
                   if start_dt != datetime.today().date():
                         messagebox('Error', 'Reservation possible on day to day basis only', error=True)
                         return
-
-                  rental_days = (end_dt - start_dt).days + 1  # include both start and end
+                  rental_days = (end_dt - start_dt).days + 1 
                   total_amount = price * Decimal(rental_days)
                   if total_amount>self.balance:
                      messagebox('Error','Insufficient Balance',error=True)
                      return
-                  
                except InvalidEntry:
                   messagebox('Error','Please fill in all fields',error=True)
                   return
@@ -630,7 +607,6 @@ class User(Account):
                   messagebox('Error',f'{e}',error=True)
                   return
                else:
-                  
                   self.db.update('update_rented',car_id,'RESERVED')
                   self.db.set_tablename("Users")
                   self.balance=self.balance-total_amount
@@ -648,11 +624,9 @@ class User(Account):
          if self.carid==None:
             raise InvalidEntry()
          self.db.set_tablename("Users")
-      
          self.db.update('update_carid',self.username,None)
          self.db.set_tablename("Cars")
          self.db.update('update_rented',self.carid,'UNRESERVED')
-         
          self.db.set_tablename("RentalHistory")
          end_date=self.db.fetch('check_enddate',self.carid)
          print(end_date)
@@ -663,9 +637,7 @@ class User(Account):
          return
 
       if end_date_obj < date.today():
-         date_difference = (date.today() - end_date_obj).days
-            
-      
+         date_difference = (date.today() - end_date_obj).days  
          self.db.set_tablename("Cars")
          result=self.db.fetch('check price',self.carid)
          price=result[0]
