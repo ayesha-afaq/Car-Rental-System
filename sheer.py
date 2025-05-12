@@ -345,12 +345,7 @@ class Car:
 class User(Account):
    def __init__(self):
       self.db=RecordManagement("Users")
-      self.username=None
-      self.name=None
-      self.password=None
-      self.balance=None
-      self.address=None
-      self.carid=None
+      self.username, self.name, self.password, self.balance, self.address, self.carid = (None,) * 6
       user_window=ctk.CTk()
       self.user_window=user_window
       self.user_window.title('User Portal')
@@ -364,7 +359,6 @@ class User(Account):
    def view_balance(self):
       view_balance_window=ctk.CTk()
       self.view_balance_window=view_balance_window
-     
       self.view_balance_window.title('Account Balance')
       self.view_balance_window.geometry('450x450')
       self.view_balance_window_Frame=CTkFrame(view_balance_window, width=500, height=500)
@@ -383,12 +377,8 @@ class User(Account):
         return
       else:
         
-        self.username = result[1]
-        self.name = result[0]
-        self.password = result[2]
-        self.balance = result[3]
-        self.address = result[4]
-        self.carid = result[5]
+        self.name, self.username, self.password, self.balance, self.address, self.carid = result[:6]
+
 
         #  Destroy the login window here
         if hasattr(self, 'login_window'):
@@ -653,7 +643,7 @@ class User(Account):
                   messagebox('Success','Car Rented Successfully')
 
    def return_car(self):
-      #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
+      
       try:
          if self.carid==None:
             raise InvalidEntry()
@@ -690,7 +680,7 @@ class User(Account):
          messagebox('Success','Car Returned Successfully')
         
 
-   #return late date,insert krne pr try except,gari li nai but return kr rhe ,passchange,gari rent krte v agr aik he screen mai dubara rent, dedeuct krne pr paisy, 
+    
 
 
 
