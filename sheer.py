@@ -20,7 +20,7 @@ ctk.set_default_color_theme('green')
 
 
 
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_areeba
 
 class DuplicateEntryError(Exception):
     def __init__(self, field_name, value):
@@ -51,7 +51,7 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_areeba)
          print('connected to database')
          
       except Exception as e:
@@ -114,7 +114,8 @@ class RecordManagement:
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
             print(args[0])
-            print(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            
+            print(f"SELECT TOP 1 END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}' ORDER BY Rental_ID DESC")
             self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
@@ -562,22 +563,32 @@ class User(Account):
    def CreateUser(self,name,username,password,balance,address):
       self.db.set_tablename("Users")
       existing = self.db.fetch('check_user',username)
-      
+      print(name,username,password,balance,address)
       try:
          if existing:
             raise DuplicateEntryError("Username", username)
-         self.db.insert(self.username,self.name,self.password,self.balance,self.address)
+         elif username=='' or password=='' or name=='' or balance=='' or address=='':
+            raise InvalidEntry()
+         self.db.insert(username,name,password,balance,address)
+         
       except DuplicateEntryError as e:
          messagebox('Error',f'{e}',error=True)
+         return
       except pyodbc.ProgrammingError:
          messagebox('Error','enter a valid amount',error=True)
+         return
+      except InvalidEntry:
+         messagebox('Error','Fill in all fields',error=True)
+         return
       else:
+         
          self.username=username
          self.name=name
          self.password=password
          self.balance=balance
          self.address=address
-
+         messagebox('Success','User Created Successfully please login to continue')
+         self.create_user_window.destroy()
    def CreateUserWindow(self):
       create_user_window=ctk.CTk()
       self.create_user_window=create_user_window
@@ -668,19 +679,47 @@ class User(Account):
    
 
    def rent_car(self,car_id,start_date,end_date):
-      
-               self.db.set_tablename("Cars")
-               rented=self.db.fetch('checkrented',car_id)
-               if rented[0]=='RESERVED':
-                  messagebox('Error','Car is already rented',error=True)
+               try:  
+                   
+                  if self.carid!=None:
+                     messagebox('Error','You have already rented a car',error=True)
+                     return
+                  if start_date==None or end_date==None or car_id=='':
+                     raise InvalidEntry()
+                  self.db.set_tablename("Cars")
+                  result=self.db.fetch('CheckCarId',car_id)
+                  if result==None:
+                     raise ValueError('Car ID does not exist')
+                  
+                     
+                  self.db.set_tablename("Cars")
+                  rented=self.db.fetch('checkrented',car_id)
+                  if rented[0]=='RESERVED':
+                     messagebox('Error','Car is already rented',error=True)
+                     return
+                  result=self.db.fetch('check price',car_id)
+                  price=Decimal(result[0])
+                  start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+                  end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+
+                  if start_dt > end_dt:
+                        messagebox('Error', 'Start date cannot be after end date', error=True)
+                        return
+                  if start_dt < datetime.today():
+                        messagebox('Error', 'Start date cannot be in the past', error=True)
+                        return
+
+                  rental_days = (end_dt - start_dt).days + 1  # include both start and end
+                  total_amount = price * Decimal(rental_days)
+                  if total_amount>self.balance:
+                     messagebox('Error','Insufficient Balance',error=True)
+                     return
+                  
+               except InvalidEntry:
+                  messagebox('Error','Please fill in all fields',error=True)
                   return
-               result=self.db.fetch('check price',car_id)
-               price=Decimal(result[0])
-               
-               total_amount=price*(Decimal(end_date[9:])-Decimal(start_date[9:]))
-               print(total_amount)
-               if total_amount>self.balance:
-                  messagebox('Error','Insufficient Balance',error=True)
+               except ValueError as e:
+                  messagebox('Error',f'{e}',error=True)
                   return
                else:
                   
@@ -697,17 +736,23 @@ class User(Account):
 
    def return_car(self):
       #carid fetch , car id remove , date chcek if more than money deduct , car unreseve 
-      self.db.set_tablename("Users")
-   
-      self.db.update('update_carid',self.username,None)
-      self.db.set_tablename("Cars")
-      self.db.update('update_rented',self.carid,'UNRESERVED')
+      try:
+         if self.carid==None:
+            raise InvalidEntry()
+         self.db.set_tablename("Users")
       
-      self.db.set_tablename("RentalHistory")
-      end_date=self.db.fetch('check_enddate',self.carid)
-      print(end_date)
-      end_date_str = end_date[0]
-      end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+         self.db.update('update_carid',self.username,None)
+         self.db.set_tablename("Cars")
+         self.db.update('update_rented',self.carid,'UNRESERVED')
+         
+         self.db.set_tablename("RentalHistory")
+         end_date=self.db.fetch('check_enddate',self.carid)
+         print(end_date)
+         end_date_str = end_date[0]
+         end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+      except InvalidEntry:
+         messagebox('Error','You have not rented any car',error=True)
+         return
 
       if end_date_obj < date.today():
          date_difference = (date.today() - end_date_obj).days
