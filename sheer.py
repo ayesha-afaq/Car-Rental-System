@@ -160,138 +160,23 @@ class RecordManagement:
 
 
    def print_table(self,operation):
-      if self.TableName=="Users":
-         if operation=='rentals':
-            try:
-               # Create main window
-               table_window= ctk.CTk()
-               table_window.geometry("800x400")
-               table_window.title("User Rentals")
 
-               # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE Car_ID IS NOT NULL")
-               columns = [column[0] for column in self.cursor.description]  # Get column names
-               data = self.cursor.fetchall()
-
-               # # Convert to format CTkTable needs (list of lists)
-               table_data = [columns] + list(data)
-
-               # # Create table
-               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-               table.pack(expand=True, fill="both", padx=20, pady=20)
-
-
-               # # Add some styling
-               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
-
-               table_window.mainloop()
-
-            except:
-               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-      
-      elif self.TableName=="Cars":
-         if operation=='rentcar':
-            try:
-               # Create main window
-               table_window= ctk.CTk()
-               table_window.geometry("800x400")
-               table_window.title("Car Options")
-
-               # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE RESERVATIONSTATUS='UNRESERVED'") 
-               columns = [column[0] for column in self.cursor.description]  # Get column names
-               data = self.cursor.fetchall()
-
-               # # Convert to format CTkTable needs (list of lists)
-               table_data = [columns] + list(data)
-
-               # # Create table
-               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-               table.pack(expand=True, fill="both", padx=20, pady=20)
-
-               # # Add some styling
-               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
-
-               table_window.mainloop()
-
-            except:
-               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-         
-         elif operation=='delete_car':
-            try:
-               table_window= ctk.CTk()
-               table_window.geometry("800x400")
-               table_window.title("Car Options")
-
-               # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT Car_ID, MODEL FROM {self.TableName} ")
-               columns = [column[0] for column in self.cursor.description]  # Get column names
-               data = self.cursor.fetchall()
-
-               # # Convert to format CTkTable needs (list of lists)
-               table_data = [columns] + list(data)
-
-               # # Create table
-               table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-               table.pack(expand=True, fill="both", padx=20, pady=20)
-
-               #entry for car id 
-               id=CTkEntry(master=table_window,placeholder_text='Car ID')
-               id.pack(padx=10,pady=10)
-               
-               CTkButton(master=table_window,text='ENTER',command=lambda: self.delete('delete_car',table_window,id.get())).pack(pady=10)
-               
-
-               # # Add some styling
-               table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
-
-               table_window.mainloop()
-            except:
-               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-            
-         elif operation=='reservedcars':
-            try:
-               table_window= ctk.CTk()
-               table_window.geometry("800x400")
-               table_window.title("Reserved Cars")
-
-               # Fetch data without pandas warning
-               ##___query for fetching the cars ARE reserved________
-               self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE ReservationStatus = 'RESERVED' ")
-               columns = [column[0] for column in self.cursor.description]  # Get column names
-               data = self.cursor.fetchall()
-               if len(data)==0:
-                  messagebox(title='Reserved Cars',message='No Cars Are Currently Reserved',button='ok')
-               else:
-                  # # Convert to format CTkTable needs (list of lists)
-                  table_data = [columns] + list(data)
-
-                  # # Create table
-                  table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
-                  table.pack(expand=True, fill="both", padx=20, pady=20)
-
-                  # # Add some styling
-                  table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
-
-                  table_window.mainloop()
-
-            except:
-               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-
-      elif self.TableName=='RentalHistory':
+      def print_table_window(w_title,query):
          try:
-            if operation=='rentalhistory':
+               # Create main window
                table_window= ctk.CTk()
                table_window.geometry("800x400")
-               table_window.title("Rental History")
+               table_window.title(w_title)
 
                # Fetch data without pandas warning
-               self.cursor.execute(f"SELECT * FROM {self.TableName} ")
+               self.cursor.execute(query)
                columns = [column[0] for column in self.cursor.description]  # Get column names
                data = self.cursor.fetchall()
+
                if len(data)==0:
-                     messagebox(title='Rental History',message='No Rental History Yet!',button='ok')
+                  messagebox(title=w_title,message='Table has NO Entries Yet',button='OK')
                else:
+
                   # # Convert to format CTkTable needs (list of lists)
                   table_data = [columns] + list(data)
 
@@ -299,13 +184,46 @@ class RecordManagement:
                   table = CTkTable(master=table_window, row=len(table_data), column=len(columns), values=table_data)
                   table.pack(expand=True, fill="both", padx=20, pady=20)
 
+
                   # # Add some styling
                   table.configure(header_color="#2b2b2b", hover_color="#3a3a3a")
 
-                  table_window.mainloop()
+                  return table_window
 
          except:
-            messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+      
+      if self.TableName=="Users":
+         if operation=='rentals':
+            window=print_table_window(w_title='User Rentals',query=f"SELECT * FROM {self.TableName} WHERE Car_ID IS NOT NULL")
+            window.mainloop()
+      
+      elif self.TableName=="Cars":
+         
+         if operation=='rentcar':
+            window=print_table_window(title='Car Options',query=f"SELECT * FROM {self.TableName} WHERE RESERVATIONSTATUS='UNRESERVED'")
+            window.mainloop()
+
+         
+         elif operation=='delete_car':
+
+            window=print_table_window(w_title='Car Options',query=f"SELECT Car_ID, MODEL FROM {self.TableName} WHERE ReservationStatus ='UNRESERVED'")
+
+            id=CTkEntry(master=window,placeholder_text='Car ID')
+            id.pack(padx=10,pady=10)
+               
+            CTkButton(master=window,text='ENTER',command=lambda: self.delete('delete_car',window,id.get())).pack(pady=10)
+
+            window.mainloop()
+            
+         elif operation=='reservedcars':
+            window=print_table_window(w_title='Reserved Cars',query=f"SELECT * FROM {self.TableName} WHERE ReservationStatus ='RESERVED' ")
+            window.mainloop()
+      
+
+      elif self.TableName=='RentalHistory':
+         window=print_table_window(w_title='Rental History',query=f"SELECT * FROM {self.TableName} ")
+         window.mainloop()
 
                
 
@@ -410,12 +328,14 @@ class Car:
             if result==None:
                self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
             else:
-               raise InvalidEntry('This Car ID Already Exists')
+               raise DuplicateEntryError('Car ID',self.CarId)
                
          else:
             raise InvalidEntry('CarID is NOt Accurate!')
 
       except InvalidEntry as e:
+         messagebox(title='Invalid Entry',message=f'{e}',error=True)
+      except DuplicateEntryError as e:
          messagebox(title='Invalid Entry',message=f'{e}',error=True)
       except:
          messagebox(title='Unknown Error',message='An Unknown Error Occurred',error=True)
