@@ -87,8 +87,7 @@ class RecordManagement:
       if self.TableName=='Users':
          if operation=="login":
             self.cursor.execute(f"SELECT * FROM {self.TableName} WHERE USER_NAME='{args[0]}' AND PASSWORD='{args[1]}'")
-            return self.cursor.fetchone()
-         
+            return self.cursor.fetchone()      
          elif operation=="balance check":
             self.cursor.execute(f"SELECT BALANCE FROM {self.TableName} WHERE USER_NAME='{args[0]}'")
             return self.cursor.fetchone()
@@ -114,9 +113,8 @@ class RecordManagement:
       elif self.TableName=='RentalHistory':
          if operation=="check_enddate":
             print(args[0])
-            
             print(f"SELECT TOP 1 END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}' ORDER BY Rental_ID DESC")
-            self.cursor.execute(f"SELECT END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+            self.cursor.execute(f"SELECT TOP 1 END_DATE FROM {self.TableName} WHERE CAR_ID='{args[0]}' ORDER BY Rental_ID DESC")
             return self.cursor.fetchone()
       elif self.TableName=="Admin":
          if operation=="check_admin":
@@ -201,7 +199,7 @@ class RecordManagement:
       elif self.TableName=="Cars":
          
          if operation=='rentcar':
-            window=print_table_window(title='Car Options',query=f"SELECT * FROM {self.TableName} WHERE RESERVATIONSTATUS='UNRESERVED'")
+            window=print_table_window(w_title='Car Options',query=f"SELECT * FROM {self.TableName} WHERE RESERVATIONSTATUS='UNRESERVED'")
             window.mainloop()
 
          
@@ -241,7 +239,7 @@ class Account(ABC):
             except:
                messagebox('Error','Unknown Error Occurred',error=True,button='ok')
 
-         elif account=='User':
+         elif account=='Users':
             try:
                self.db.TableName="Users"
                self.db.update("update_password",password,username)
@@ -384,7 +382,7 @@ class User(Account):
         messagebox('Login Failed', 'Invalid Username or Password', error=True)
         return
       else:
-        messagebox('Login Success', 'Welcome to the Car Rental System :)')
+        
         self.username = result[1]
         self.name = result[0]
         self.password = result[2]
@@ -441,7 +439,7 @@ class User(Account):
       CTkButton(master=self.user_frame,text='RETURN CAR',command=self.return_car,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(username=self.username,account='User'),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(username=self.username,account='Users'),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(self.user_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
@@ -553,7 +551,7 @@ class User(Account):
       self.rent_car_Frame=CTkFrame(rent_car_window, width=500, height=500)
       self.rent_car_Frame.pack(pady=40)
       
-      CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table('rentcar'),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.rent_car_Frame,text='View Cars',command=lambda: self.db.print_table(operation='rentcar'),corner_radius=10,fg_color='blue').pack(pady=10)
       car_id=CTkEntry(master=self.rent_car_Frame,placeholder_text='Enter the car id',corner_radius=10,fg_color='blue')
       car_id.pack(pady=10)
       selected_data = {"startdate": None, "enddate": None}
@@ -619,14 +617,14 @@ class User(Account):
                      return
                   result=self.db.fetch('check price',car_id)
                   price=Decimal(result[0])
-                  start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-                  end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+                  start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
+                  end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
 
                   if start_dt > end_dt:
                         messagebox('Error', 'Start date cannot be after end date', error=True)
                         return
-                  if start_dt < datetime.today():
-                        messagebox('Error', 'Start date cannot be in the past', error=True)
+                  if start_dt != datetime.today().date():
+                        messagebox('Error', 'Reservation possible on day to day basis only', error=True)
                         return
 
                   rental_days = (end_dt - start_dt).days + 1  # include both start and end
