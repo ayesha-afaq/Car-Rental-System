@@ -16,7 +16,7 @@ from abc import ABC,abstractmethod
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_maham
 
 class DuplicateEntryError(Exception):
     def __init__(self, field_name, value):
@@ -48,7 +48,7 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_maham)
          print('connected to database')
          
       except Exception as e:
@@ -113,12 +113,14 @@ class RecordManagement:
             print(args[0],args[1])
             self.cursor.execute(f"UPDATE {self.TableName} SET BALANCE={Decimal(args[1])} WHERE USER_NAME='{args[0]}'")
          elif operation=="update_password":
+            print(f"UPDATE {self.TableName} SET PASSWORD='{args[0]}' WHERE USER_NAME='{args[1]}'")
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD='{args[0]}' WHERE USER_NAME='{args[1]}'")
          elif operation=="update_carid":
             self.cursor.execute(f"UPDATE {self.TableName} SET CAR_ID = ? WHERE USER_NAME = ?",(args[1], args[0]))
       elif self.TableName=='Admin':
          if operation=="update_password":
             print('updating admin password')
+            print(f"UPDATE {self.TableName} SET PASSWORD='{args[0]}' WHERE ADMIN_NAME='{args[1]}'")
             self.cursor.execute(f"UPDATE {self.TableName} SET PASSWORD='{args[0]}' WHERE ADMIN_NAME='{args[1]}'")
             print('admin password updated')
       elif self.TableName=='Cars':
@@ -231,14 +233,18 @@ class Account(ABC):
                   self.db.TableName = "Admin"
                   self.db.update("update_password", new_password, username)
                elif account_type == 'Users':
+                  print('in users')
                   self.db.TableName = "Users"
+                  print('table name user set')
                   self.db.update("update_password", new_password, username)
+                  print('query done')
                   
-               messagebox('Success', 'Password changed successfully!')
-               change_pass_window.destroy()
                
          except Exception as e:
                messagebox('Error', f'Failed to change password: {str(e)}', error=True)
+         else:
+            messagebox('Success', 'Password changed successfully!')
+            change_pass_window.destroy()
 
       CTkButton(frame, text="Change Password", command=update_password).pack(pady=20)
       CTkButton(frame, text="Cancel", command=change_pass_window.destroy).pack(pady=10)
@@ -416,7 +422,7 @@ class User(Account):
       CTkButton(master=self.user_frame,text='RETURN CAR',command=self.return_car,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account_type='User',username=self.username),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account_type='Users',username=self.username),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(self.user_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
@@ -569,7 +575,7 @@ class User(Account):
 
 
       CTkButton(master=self.rent_car_Frame,text='Rent Car',command=lambda:self.rent_car(car_id.get(),selected_data['startdate'],selected_data['enddate']),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.rent_car_Frame,text='Back to User Portal',command=lambda: self.back_home(self.rent_car_window),corner_radius=10,fg_color='blue').pack(pady=10)
+      
       rent_car_window.mainloop()
    
 
