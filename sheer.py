@@ -1,15 +1,12 @@
 
-import pyodbc
-import customtkinter as ctk
+import pyodbc,sys,customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
 from CTkTable import CTkTable
 from tkcalendar import Calendar
-from tkinter import Toplevel
-
+from tkinter import Toplevel,messagebox
+import tkinter as tk
 from decimal import Decimal,InvalidOperation
 from datetime import datetime, date
-
-
 import pandas as pd
 from abc import ABC,abstractmethod
 
@@ -27,7 +24,7 @@ class InvalidEntry(Exception):
 
 
 def messagebox(title, message,error=False,button='ok'):
-    ## custom tkinter mAE message box khud sae nhi arha tha tu is liyay yay bnya hAE
+    
    top = CTkToplevel()
    top.title(title)
    top.geometry("300x200")
@@ -53,8 +50,10 @@ class RecordManagement:
          
       except Exception as e:
          print('connection error')
-         messagebox('Connection Error',e,error=True)
-         return
+         root = tk.Tk()
+         root.withdraw()  
+         tk.messagebox.showerror('Connection Error', str(e))
+         sys.exit(1)
       else:
          self.connection.autocommit=True
          self.cursor=self.connection.cursor()
@@ -497,13 +496,10 @@ class User(Account):
       self.create_user_window.geometry('450x450')
       self.create_user_Frame=CTkFrame(create_user_window, width=500, height=500)
       self.create_user_Frame.pack(pady=40)
-      
-      
       name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your name',corner_radius=10,fg_color='blue')
       name.pack(pady=10)
       user_name=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your username',corner_radius=10,fg_color='blue')
       user_name.pack(pady=10)
-      
       password=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your password',corner_radius=10,fg_color='blue')
       password.pack(pady=10)
       balance=CTkEntry(master=self.create_user_Frame,placeholder_text='Enter your balance',corner_radius=10,fg_color='blue')
@@ -515,8 +511,7 @@ class User(Account):
 
    def rent_car_window(self):
       self.db.set_tablename("Users")
-      # checkcar=self.db.fetch('checkcar',self.username)
-      # if checkcar[0]!=None:
+     
       if self.carid!=None:
          messagebox('Error','You have already rented a car',error=True)
          return
@@ -663,9 +658,6 @@ class User(Account):
          messagebox('Success','Car Returned Successfully')
         
 
-    
-
-
 
 class RentalHistory:
 
@@ -766,9 +758,6 @@ class Admin(Account):
          self.db.print_table(operation='rentalhistory')
       except:
          messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
-
-
-
 
    
 
