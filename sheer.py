@@ -13,7 +13,7 @@ from abc import ABC,abstractmethod
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
-from ConnectionString import connection_string_maham
+from ConnectionString import connection_string_ayesha
 
 class DuplicateEntryError(Exception):
     def __init__(self, field_name, value):
@@ -45,7 +45,7 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         self.connection=pyodbc.connect(connection_string_maham)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          print('connected to database')
          
       except Exception as e:
@@ -234,9 +234,9 @@ class Account(ABC):
                elif account_type == 'Users':
                   print('in users')
                   self.db.TableName = "Users"
-                  print('table name user set')
+                  # print('table name user set')
                   self.db.update("update_password", new_password, username)
-                  print('query done')
+                  # print('query done')
                   
                
          except Exception as e:
@@ -252,10 +252,12 @@ class Account(ABC):
 
 
 
-   def back_home(self,window):
+   def back_home(self,destroy_window,deiconify_window):
       try:
-         window.destroy()
-         print('admin window destroyed')
+         deiconify_window.deiconify()
+         destroy_window.destroy()
+
+         # print('admin window destroyed')
       except:
          messagebox('Error','Unknown Error Occurred',error=True,button='ok')
          # print('unknown error')
@@ -335,7 +337,7 @@ class Car:
 
       
 class User(Account):
-   def __init__(self):
+   def __init__(self,main_window):
       self.db=RecordManagement("Users")
       self.username, self.name, self.password, self.balance, self.address, self.carid = (None,) * 6
       user_window=ctk.CTk()
@@ -344,8 +346,8 @@ class User(Account):
       self.user_window.geometry('450x450')
       self.user_Frame=CTkFrame(user_window, width=500, height=500)
       self.user_Frame.pack(pady=40)
-      CTkButton(master=self.user_Frame,text='Sign up',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_Frame,text='Log in',command=lambda: self.LoginWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_Frame,text='SIGN UP',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_Frame,text='LOG IN',command=lambda: self.LoginWindow(main_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
       user_window.mainloop()
       #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
    def view_balance(self):
@@ -361,7 +363,7 @@ class User(Account):
       view_balance_window.mainloop()
 
   
-   def login(self, username, password):
+   def login(self, username, password,main_window):
       result = self.db.fetch('login', username, password)
 
       if result is None:
@@ -377,10 +379,10 @@ class User(Account):
             self.login_window.destroy()
 
         # Show main user operations window
-        self.ShowOperations()
+        self.ShowOperations(main_window)
 
       
-   def LoginWindow(self):
+   def LoginWindow(self,main_window):
     # Destroy the initial user portal window
     if hasattr(self, 'user_window'):
         self.user_window.destroy()
@@ -401,7 +403,7 @@ class User(Account):
     CTkButton(
         master=self.login_Frame,
         text='Log in',
-        command=lambda: self.login(user_name.get(), password.get()),
+        command=lambda: self.login(user_name.get(), password.get(),main_window=main_window),
         corner_radius=10,
         fg_color='blue'
     ).pack(pady=10)
@@ -409,8 +411,10 @@ class User(Account):
     login_window.mainloop()
 
 
-   def ShowOperations(self):
-      ## inme change password ka option bhi rkhna hae jo admin aur user kai liyay same hoga account class sae inherit hoga
+   def ShowOperations(self,main_window):
+      #withdraws main window of program
+      main_window.withdraw()
+
       user_window=ctk.CTk()
       self.user_window=user_window
       self.user_window.title('User Portal')
@@ -422,7 +426,7 @@ class User(Account):
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account_type='Users',username=self.username),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(self.user_window),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
    def update_balance_ui(self):
@@ -489,6 +493,7 @@ class User(Account):
          self.address=address
          messagebox('Success','User Created Successfully please login to continue')
          self.create_user_window.destroy()
+
    def CreateUserWindow(self):
       create_user_window=ctk.CTk()
       self.create_user_window=create_user_window
@@ -677,7 +682,7 @@ class RentalHistory:
 
 
 class Admin(Account):
-   def __init__(self):
+   def __init__(self,main_window):
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
       self.admin_login_window.title('Login Admin Account')
@@ -692,12 +697,15 @@ class Admin(Account):
       
       password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='green')
       password.pack(pady=10)
+
       
-      CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get(),window=admin_login_window),corner_radius=10,fg_color='blue').pack(pady=20)
+      CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get(),main_window=main_window),corner_radius=10,fg_color='blue').pack(pady=20)
+      CTkButton(master=self.admin_login_Frame,text='CANCEL',command=lambda: self.back_home(window=admin_login_window),corner_radius=10,fg_color='blue').pack(pady=10)
+      
       admin_login_window.mainloop()
 
 
-   def ShowOperations(self,user_name,password,window):
+   def ShowOperations(self,user_name,password,main_window):
 
       self.db.set_tablename('Admin')
       try:
@@ -712,8 +720,13 @@ class Admin(Account):
          messagebox('Login Failed','Invalid Username or Password',error=True)
          return
       else:
-         #destroy the login window
-         window.destroy()
+
+         if hasattr(self, 'admin_login_window'):
+            self.admin_login_window.destroy()
+
+         #withdraw the main window of program
+         main_window.withdraw()
+
          # new window to show operations of admin
          admin_window=ctk.CTk()
          self.admin_window=admin_window
@@ -727,7 +740,7 @@ class Admin(Account):
          CTkButton(master=self.admin_frame,text='CURRENT RENTALS REPORT',command=self.print_user_rentals,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account_type='Admin',username=user_name),corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='VIEW COMPLETE RENTAL HISTORY',command=self.print_comp_rental_history,corner_radius=10,fg_color='blue').pack(pady=10)
-         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=lambda: self.back_home(window=self.admin_window),corner_radius=10,fg_color='blue').pack(pady=10)
+         CTkButton(master=self.admin_frame,text='BACK TO HOME PAGE',command=lambda: self.back_home(destroy_window=self.admin_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
          admin_window.mainloop()
 
@@ -782,8 +795,8 @@ class Rental_System:
          
       self.menu_frame =CTkFrame(root, width=500, height=500)
       self.menu_frame.pack(pady=40)
-      CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(main_window=self.root),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(main_window=self.root),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
    
    def destroy_window(self):
