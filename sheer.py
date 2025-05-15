@@ -13,7 +13,7 @@ from abc import ABC,abstractmethod
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_areeba
 
 class DuplicateEntryError(Exception):
     def __init__(self, field_name, value):
@@ -45,14 +45,13 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         self.connection=pyodbc.connect(connection_string_ayesha)
-         print('connected to database')
+         self.connection=pyodbc.connect(connection_string_areeba)
+         
          
       except Exception as e:
-         print('connection error')
          root = tk.Tk()
          root.withdraw()  
-         tk.messagebox.showerror('Connection Error', str(e))
+         tk.messagebox.showerror('Connection Error','please check your database connection and try again')
          sys.exit(1)
       else:
          self.connection.autocommit=True
@@ -354,7 +353,7 @@ class User(Account):
       view_balance_window=ctk.CTk()
       self.view_balance_window=view_balance_window
       self.view_balance_window.title('Account Balance')
-      self.view_balance_window.geometry('450x450')
+      self.view_balance_window.geometry('300x200')
       self.view_balance_window_Frame=CTkFrame(view_balance_window, width=500, height=500)
       self.view_balance_window_Frame.pack(pady=40)
       
@@ -436,16 +435,14 @@ class User(Account):
       self.update_balance_window.geometry('450x450')
       self.update_balance_window_Frame=CTkFrame(update_balance_window, width=500, height=500)
       self.update_balance_window_Frame.pack(pady=40)
-      # self.db=RecordManagement("Users")
-      # result=self.db.fetch('balance check',self.username)
-      # balancetxt=CTkLabel(master=self.view_balance_window_Frame,text=f"Your Balance is :{result[0]}")
+     
       balancetxt=CTkLabel(master=self.update_balance_window_Frame,text=f"Enter the amount to be added to your balance :")
       amount=CTkEntry(master=self.update_balance_window_Frame,placeholder_text='Enter amount',corner_radius=10,fg_color='blue')
       
       balancetxt.pack(pady=10)
       amount.pack(pady=10)
 
-      ## check lgegea kae amount int mae hai ya nhi 
+      
       balancelabel=CTkLabel(master=self.update_balance_window_Frame,text=f"Your Current Balance is :{self.balance}")
       CTkButton(master=self.update_balance_window_Frame,text='Add Amount',command=lambda: self.update_balance(amount.get(),balancelabel),corner_radius=10,fg_color='blue').pack(pady=10)
       balancelabel.pack(pady=10)
