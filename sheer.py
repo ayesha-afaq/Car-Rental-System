@@ -11,16 +11,18 @@ import pandas as pd
 from abc import ABC,abstractmethod
 
 ctk.set_appearance_mode('dark')
-ctk.set_default_color_theme('green')
+ctk.set_default_color_theme('blue')
 
 from ConnectionString import connection_string_areeba
 
 class DuplicateEntryError(Exception):
-    def __init__(self, field_name, value):
-        super().__init__(f"{field_name.capitalize()} '{value}' already exists.")
+   def __init__(self, field_name, value):
+      super().__init__(f"{field_name.capitalize()} '{value}' already exists.")
         
 class InvalidEntry(Exception):
-   pass
+   def __init__(self,msg):
+      super().__init__(msg)
+ 
 
 
 def messagebox(title, message,error=False,button='ok'):
@@ -130,9 +132,17 @@ class RecordManagement:
       if self.TableName=='Cars':
          if operation=="delete_car":
             try:
-               self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
-            except:
-               messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+               result=self.fetch(operation=='CheckCarId',args[0])
+               if result==None:
+                  raise InvalidEntry('Invalid CarID')
+               else:
+                  self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+
+            except InvalidEntry as e:
+               messagebox(title='Error',message=f'{e}',error=True)
+            except Exception as e:
+               messagebox(title='Error',message=f'{e}',error=True)
+
             else:
                messagebox(title='Success',message='Car removed successfully!')
                window.destroy()
@@ -286,7 +296,7 @@ class Car:
       self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
       self.car_Frame.pack(pady=40)
 
-      CTkLabel(master=self.car_window,text='Id Format: CR-brand first 3 letters + model\n e.g: bmw1989 ').pack(pady=10)
+      CTkLabel(master=self.car_window,text='Id Format: CR-brand first 3 letters + model\n e.g: bmwM4').pack(pady=10)
 
       CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
       CarID.pack(pady=10)
@@ -295,9 +305,9 @@ class Car:
       model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
       model.pack(pady=10)
       
-      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day in $',corner_radius=10,fg_color='blue')
+      priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day in $ (numeric)',corner_radius=10,fg_color='blue')
       priceperday.pack(pady=10)
-      Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity',corner_radius=10,fg_color='blue')
+      Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity (numeric)',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
 
       
@@ -315,21 +325,23 @@ class Car:
       self.reservationstatus='UNRESERVED'
       try:
          if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
-            result=self.db.fetch('CheckCarId',self.CarId)
-            if result==None:
-               self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
+            if type(self.PricePerDay)==int and type(self.SeatingCapacity)==int:
+                  result=self.db.fetch('CheckCarId',self.CarId)
+                  if result==None:
+                     self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
+                  else:
+                     raise DuplicateEntryError('Car ID',self.CarId)
             else:
-               raise DuplicateEntryError('Car ID',self.CarId)
-               
+               raise InvalidEntry('Price or Seating Capacity Invalid')
          else:
             raise InvalidEntry('CarID is NOt Accurate!')
-
+         
       except InvalidEntry as e:
          messagebox(title='Invalid Entry',message=f'{e}',error=True)
       except DuplicateEntryError as e:
          messagebox(title='Invalid Entry',message=f'{e}',error=True)
-      except:
-         messagebox(title='Unknown Error',message='An Unknown Error Occurred',error=True)
+      except Exception as e:
+         messagebox(title='Error',message=f'{e}',error=True)
       else:
          messagebox(title='Success',message='Car Successfully Added!')
          window.destroy()
@@ -697,19 +709,11 @@ class Admin(Account):
 
       
       CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get(),main_window=main_window),corner_radius=10,fg_color='blue').pack(pady=20)
-      CTkButton(master=self.admin_login_Frame,text='CANCEL',command=lambda: self.back_home(window=admin_login_window),corner_radius=10,fg_color='blue').pack(pady=10)
       
       admin_login_window.mainloop()
 
 
    def ShowOperations(self,user_name,password,main_window):
-
-      self.db.set_tablename('Admin')
-      try:
-         self.db.fetch("check_admin",user_name,password)
-      except:
-         messagebox(title='Login Error',message='Incorrect Username or Password',error=True)
-      
       self.db.TableName='Admin'
 
       result=self.db.fetch("check_admin",user_name,password)
@@ -745,29 +749,29 @@ class Admin(Account):
       try:
          self.db.TableName='Cars'
          self.db.print_table(operation='delete_car')
-      except:
-         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+      except Exception as e:
+         messagebox(title='Error',message=f'{e}',error=True)
 
    def print_user_rentals(self):
       try:
          self.db.TableName='Users'
          self.db.print_table(operation='rentals')
-      except:
-         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+      except Exception as e:
+         messagebox(title='Error',message=f'{e}',error=True)
          
    def print_currently_reserved_cars(self):
       try:
          self.db.TableName='Cars'
          self.db.print_table(operation='reservedcars')
-      except:
-         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+      except Exception as e:
+         messagebox(title='Error',message=f'{e}',error=True)
 
    def print_comp_rental_history(self):
       try:
          self.db.TableName='RentalHistory'
          self.db.print_table(operation='rentalhistory')
-      except:
-         messagebox(title='Error',message='Unknown Error Occurred.\nPls Try Again',error=True)
+      except Exception as e:
+         messagebox(title='Error',message=f'{e}',error=True)
 
    
 
