@@ -1,4 +1,3 @@
-
 import pyodbc,sys,customtkinter as ctk
 from customtkinter import CTkLabel,CTkButton,CTkEntry,CTkFrame,CTkInputDialog,CTkToplevel
 from CTkTable import CTkTable
@@ -9,6 +8,7 @@ from decimal import Decimal,InvalidOperation
 from datetime import datetime, date
 import pandas as pd
 from abc import ABC,abstractmethod
+
 
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
@@ -692,28 +692,31 @@ class RentalHistory:
 
 class Admin(Account):
    def __init__(self,main_window):
+      # LOGIN WINDOW FOR ADMIN ACCOUNT
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
       self.admin_login_window.title('Login Admin Account')
       self.admin_login_window.geometry('450x450')
       self.admin_login_Frame=CTkFrame(admin_login_window, width=500, height=500)
       self.admin_login_Frame.pack(pady=40)
+      #In the Record 
       self.db=RecordManagement('Admin')
-      
+      # Username Input
       user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='green')
       user_name.pack(pady=10)
       
-      
+      #Password Input
       password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='green')
       password.pack(pady=10)
 
-      
+      #Login Button
       CTkButton(master=self.admin_login_Frame,text='Login',command=lambda: self.ShowOperations(user_name.get(),password.get(),main_window=main_window),corner_radius=10,fg_color='blue').pack(pady=20)
       
       admin_login_window.mainloop()
 
 
    def ShowOperations(self,user_name,password,main_window):
+
       self.db.TableName='Admin'
 
       result=self.db.fetch("check_admin",user_name,password)
@@ -778,15 +781,18 @@ class Admin(Account):
 class Rental_System:
    
    def __init__(self,root):
+      '''Initializes the main window of program'''
       self.root=root
       self.root.title('CAR RENTAL SYSTEM')
       self.root.geometry('500x500')
+      # HEADER 1
       header=CTkLabel(
          self.root,
          width=10,
          corner_radius=10,
          text='WELCOME TO THE CAR RENTAL SYSTEM\n',
          font=("Times New Roman", 20)).pack(pady=20)
+      # HEADER 2
       header2=CTkLabel(
          self.root,
          width=10,
@@ -796,12 +802,14 @@ class Rental_System:
          
       self.menu_frame =CTkFrame(root, width=500, height=500)
       self.menu_frame.pack(pady=40)
+
+      # OPTIONS TO SELECT ACCOUNT TYPE OR EXIT SYSTEM
       CTkButton(master=self.menu_frame,text='USER ACCOUNT',command=lambda: User(main_window=self.root),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='ADMINISTRATOR',command=lambda: Admin(main_window=self.root),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
    
    def destroy_window(self):
-      #exits the system
+      #EXITS THE SYSTEM
       self.root.quit()    
       self.root.destroy()
 
@@ -811,3 +819,21 @@ class Rental_System:
 root=ctk.CTk()
 app=Rental_System(root)
 root.mainloop()
+
+# def __init__(self):
+#     self.open_windows = []
+
+# def create_window(self, title, geometry):
+#     window = ctk.CTk()
+#     window.title(title)
+#     window.geometry(geometry)
+#     self.open_windows.append(window)
+#     return window
+
+# def close_all_windows(self):
+#     for window in self.open_windows:
+#         try:
+#             window.destroy()
+#         except:
+#             pass
+#     self.open_windows = []
