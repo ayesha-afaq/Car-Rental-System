@@ -9,11 +9,11 @@ from datetime import datetime, date
 import pandas as pd
 from abc import ABC,abstractmethod
 
-
+# Sets apperance for the program windows
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
-from ConnectionString import connection_string_areeba
+from ConnectionString import connection_string_ayesha
 
 class DuplicateEntryError(Exception):
    def __init__(self, field_name, value):
@@ -47,7 +47,7 @@ class RecordManagement:
    def __init__(self,TableName):
       self.TableName=TableName
       try:
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          
          
       except Exception as e:
@@ -219,6 +219,8 @@ class RecordManagement:
 class Account(ABC):
 
    def ChangePassword(self,account_type,username):
+
+      # new window for new password entry
       change_pass_window = ctk.CTk()  
       change_pass_window.title('Change Password')
       change_pass_window.geometry('400x300')
@@ -231,25 +233,30 @@ class Account(ABC):
       password_entry.pack(pady=10)
       
       def update_password():
+         # gets the new password from entry box
          new_password = password_entry.get()
+         # checks if entry is empty
          if not new_password:
                messagebox('Error', 'Password cannot be empty', error=True)
                return
                
          try:
+            #first checks for account type user/admin
                if account_type == 'Admin':
+                  #sets tablename to required
                   self.db.TableName = "Admin"
+                  # updates password
                   self.db.update("update_password", new_password, username)
+
                elif account_type == 'Users':
-                  print('in users')
+                  # sets tablename
                   self.db.TableName = "Users"
-                  # print('table name user set')
+                  # updates password
                   self.db.update("update_password", new_password, username)
-                  # print('query done')
                   
                
          except Exception as e:
-               messagebox('Error', f'Failed to change password: {str(e)}', error=True)
+               messagebox('Error', f'Failed to Change Password: {str(e)}', error=True)
          else:
             messagebox('Success', 'Password changed successfully!')
             change_pass_window.destroy()
@@ -263,15 +270,14 @@ class Account(ABC):
 
    def back_home(self,destroy_window,deiconify_window):
       try:
+         # opens the window again
          deiconify_window.deiconify()
+         #  completely destroys the window
          destroy_window.destroy()
 
-         # print('admin window destroyed')
       except:
          messagebox('Error','Unknown Error Occurred',error=True,button='ok')
-         # print('unknown error')
-
-
+ 
    @abstractmethod
    def ShowOperations(self):
       pass
@@ -285,10 +291,16 @@ class Car:
       self.PricePerDay=None
       self.SeatingCapacity=None
       self.reserve=None
+
+      # Instantiates the Record Management class 
       self.db=RecordManagement("Cars")
+
+      # Proceed adding the car 
       self.Add_Car_Window()
 
    def Add_Car_Window(self):
+
+      # New window to enter car info
       car_window=ctk.CTk()
       self.car_window=car_window
       self.car_window.title('Add Car')
@@ -296,44 +308,56 @@ class Car:
       self.car_Frame=CTkFrame(self.car_window, width=500, height=500)
       self.car_Frame.pack(pady=40)
 
+      # Label for the CarID format
       CTkLabel(master=self.car_window,text='Id Format: CR-brand first 3 letters + model\n e.g: bmwM4').pack(pady=10)
-
+      # Entry for CAR ID
       CarID=CTkEntry(master=self.car_Frame,placeholder_text='Enter Car ID',corner_radius=10,fg_color='blue')
       CarID.pack(pady=10)
+      # Entry for car BRAND
       brand=CTkEntry(master=self.car_Frame,placeholder_text='Enter Brand',corner_radius=10,fg_color='blue')
       brand.pack(pady=10)
+      # Entry for car MODEL
       model=CTkEntry(master=self.car_Frame,placeholder_text='Enter Model',corner_radius=10,fg_color='blue')
       model.pack(pady=10)
-      
+      # Entry for PRICE PER DAY
       priceperday=CTkEntry(master=self.car_Frame,placeholder_text='Enter price per day in $ (numeric)',corner_radius=10,fg_color='blue')
       priceperday.pack(pady=10)
+      # Entry for SEATING CAPACITY
       Seating_Capacity=CTkEntry(master=self.car_Frame,placeholder_text='Enter Seating Capacity (numeric)',corner_radius=10,fg_color='blue')
       Seating_Capacity.pack(pady=10)
 
-      
+      # Proceed to add car
       CTkButton(master=self.car_Frame,text='Add Car',command=lambda: self.AddCar(CarID.get(),brand.get(),model.get(),priceperday.get(),Seating_Capacity.get(),self.car_window),corner_radius=10,fg_color='blue').pack(pady=10)
-      
       
       car_window.mainloop()
 
    def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap,window):
+      # Initializes the Car Properties 
       self.CarId=CarID
       self.Brand=Brand
       self.Model=Model
       self.Priceperday=Priceperday
       self.SeatingCapacity=SeatingCap
       self.reservationstatus='UNRESERVED'
+
       try:
+         # checks if car id format is valid
          if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
+            # checks if price and seating cap are numeric
             if type(self.PricePerDay)==int and type(self.SeatingCapacity)==int:
+                  # checks if the car id already exists
                   result=self.db.fetch('CheckCarId',self.CarId)
                   if result==None:
+                     # adds car if all required conditions are valid 
                      self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
                   else:
+                     #Car ID already exists
                      raise DuplicateEntryError('Car ID',self.CarId)
             else:
+               # Invalid input for price and seating
                raise InvalidEntry('Price or Seating Capacity Invalid')
          else:
+            # Invalid Entry for CarID
             raise InvalidEntry('CarID is NOt Accurate!')
          
       except InvalidEntry as e:
@@ -360,7 +384,7 @@ class User(Account):
       CTkButton(master=self.user_Frame,text='SIGN UP',command=lambda: self.CreateUserWindow(),corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_Frame,text='LOG IN',command=lambda: self.LoginWindow(main_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
       user_window.mainloop()
-      #idr user qindow bnegi jismai login , create user ka option hoga , if user clicks on create user then create user ka window khulega wrna login ka
+      
    def view_balance(self):
       view_balance_window=ctk.CTk()
       self.view_balance_window=view_balance_window
@@ -394,6 +418,7 @@ class User(Account):
 
       
    def LoginWindow(self,main_window):
+    
     # Destroy the initial user portal window
     if hasattr(self, 'user_window'):
         self.user_window.destroy()
@@ -423,7 +448,7 @@ class User(Account):
 
 
    def ShowOperations(self,main_window):
-      #withdraws main window of program
+      #Withdraws main window of program
       main_window.withdraw()
 
       user_window=ctk.CTk()
@@ -683,7 +708,9 @@ class RentalHistory:
       self.db=RecordManagement('RentalHistory')
    
    def add_rental(self):
+      '''Adds Rental History for a particular user'''
       try:
+         # insert credentials in the database
          self.db.insert(self.car_id,self.start_date,self.end_date,self.rental_amount)
          messagebox('Success','Rental history record added successfully')
       except Exception as e:
@@ -692,6 +719,7 @@ class RentalHistory:
 
 class Admin(Account):
    def __init__(self,main_window):
+
       # LOGIN WINDOW FOR ADMIN ACCOUNT
       admin_login_window=ctk.CTk()
       self.admin_login_window=admin_login_window
@@ -699,7 +727,8 @@ class Admin(Account):
       self.admin_login_window.geometry('450x450')
       self.admin_login_Frame=CTkFrame(admin_login_window, width=500, height=500)
       self.admin_login_Frame.pack(pady=40)
-      #In the Record 
+
+      #Instantiates the Record Management class 
       self.db=RecordManagement('Admin')
       # Username Input
       user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='green')
@@ -716,9 +745,11 @@ class Admin(Account):
 
 
    def ShowOperations(self,user_name,password,main_window):
-
+      '''Presents the Admin Portal'''
+      # sets tablename to 'Admin'
       self.db.TableName='Admin'
 
+      # check credentials given by user
       result=self.db.fetch("check_admin",user_name,password)
       if result==None:
          messagebox('Login Failed','Invalid Username or Password',error=True)
@@ -726,18 +757,21 @@ class Admin(Account):
       else:
 
          if hasattr(self, 'admin_login_window'):
+            #destroys the login window
             self.admin_login_window.destroy()
 
          #withdraw the main window of program
          main_window.withdraw()
 
-         # new window to show operations of admin
+         # ADMIN PORTAL WINDOW: shows operations for admin
          admin_window=ctk.CTk()
          self.admin_window=admin_window
          self.admin_window.title('Admin')
          self.admin_window.geometry('450x450')
          self.admin_frame =CTkFrame(admin_window, width=500, height=500)
          self.admin_frame.pack(pady=40)
+
+         # possible operations for admin
          CTkButton(master=self.admin_frame,text='ADD CAR',command= lambda: Car(),corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='REMOVE CAR',command=self.remove_car,corner_radius=10,fg_color='blue').pack(pady=10)
          CTkButton(master=self.admin_frame,text='CURRENTLY RESERVED CARS',command= self.print_currently_reserved_cars,corner_radius=10,fg_color='blue').pack(pady=10)
@@ -749,29 +783,41 @@ class Admin(Account):
          admin_window.mainloop()
 
    def remove_car(self):
+      '''Removes Car from Database'''
       try:
+         #sets tablename
          self.db.TableName='Cars'
+         # show possible options for car to be removed
          self.db.print_table(operation='delete_car')
       except Exception as e:
          messagebox(title='Error',message=f'{e}',error=True)
 
    def print_user_rentals(self):
+      '''Shows User Rentals'''
       try:
+         #sets tablename
          self.db.TableName='Users'
+         # show table for user rentals
          self.db.print_table(operation='rentals')
       except Exception as e:
          messagebox(title='Error',message=f'{e}',error=True)
          
    def print_currently_reserved_cars(self):
+      '''Shows Currently Reserved Cars'''
       try:
+         #sets tablename
          self.db.TableName='Cars'
+         # show table for currently reserved cars
          self.db.print_table(operation='reservedcars')
       except Exception as e:
          messagebox(title='Error',message=f'{e}',error=True)
 
    def print_comp_rental_history(self):
+      '''Shows Complete Rental History of System'''
       try:
+         # sets tablename
          self.db.TableName='RentalHistory'
+         # show table for complete rental history of system
          self.db.print_table(operation='rentalhistory')
       except Exception as e:
          messagebox(title='Error',message=f'{e}',error=True)
@@ -785,6 +831,7 @@ class Rental_System:
       self.root=root
       self.root.title('CAR RENTAL SYSTEM')
       self.root.geometry('500x500')
+
       # HEADER 1
       header=CTkLabel(
          self.root,
@@ -809,16 +856,17 @@ class Rental_System:
       CTkButton(master=self.menu_frame,text='EXIT SYSTEM',command=self.destroy_window,corner_radius=10,fg_color='blue').pack(pady=10)
    
    def destroy_window(self):
-      #EXITS THE SYSTEM
+      '''Exits the Program'''
       self.root.quit()    
       self.root.destroy()
 
 
 
-
+# STARTING POINT
 root=ctk.CTk()
 app=Rental_System(root)
 root.mainloop()
+
 
 # def __init__(self):
 #     self.open_windows = []
