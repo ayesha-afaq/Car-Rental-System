@@ -293,6 +293,9 @@ class Account(ABC):
          except Exception as e:
                messagebox('Error', f'Failed to change password: {str(e)}', error=True)
          else:
+            if account_type == 'Users':
+               # update the password in the user object
+               passwords['user'] = new_password
             messagebox('Success', 'Password changed successfully!')
             change_pass_window.destroy()
 
@@ -464,6 +467,7 @@ class User(Account):
       else:
          #SETTING USER DETAILS
          self.name, self.username, self.password, self.balance, self.address, self.carid = result[:6]
+         passwords['user']=self.password
 
 
          #  Destroy the login window here
@@ -517,6 +521,10 @@ class User(Account):
       CTkButton(master=self.user_frame,text='LOG OUT',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
+   def ChangePassword(self, account_type, username):
+      super().ChangePassword(account_type, username)
+      self.password=passwords['user']
+   
 
    def update_balance_ui(self):
       #UPDATE BALANCE WINDOW
@@ -963,7 +971,7 @@ class Rental_System:
       self.root.destroy()
 
 
-
+passwords={"user":None,"admin":None} #passwords for admin and user accounts
 ##____START POINT____##
 root=ctk.CTk()
 app=Rental_System(root)
