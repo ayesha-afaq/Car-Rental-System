@@ -153,15 +153,11 @@ class RecordManagement:
       if self.TableName=='Cars':
          if operation=="delete_car":
             try:
-               result=self.fetch(operation=='CheckCarId',args[0])
+               result=self.fetch('CheckCarId',args[0])
                if result==None:
-                  pass
-                  # self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
-                  # raise InvalidEntry('Invalid CarID')
+                  raise InvalidEntry('Invalid CarID')
                else:
-                  pass
-                  # raise InvalidEntry('Invalid CarID')
-                  # self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
+                  self.cursor.execute(f"DELETE FROM {self.TableName} WHERE CAR_ID='{args[0]}'")
 
             except InvalidEntry as e:
                messagebox(title='Error',message=f'{e}',error=True)
