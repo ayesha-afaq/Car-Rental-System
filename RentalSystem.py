@@ -153,7 +153,7 @@ class RecordManagement:
       if self.TableName=='Cars':
          if operation=="delete_car":
             try:
-               result=self.fetch(operation=='CheckCarId',args[0])
+               result=self.fetch('CheckCarId',args[0])
                if result==None:
                   raise InvalidEntry('Invalid CarID')
                else:
