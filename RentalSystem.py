@@ -14,7 +14,7 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
 # Import Connection string to connect to database file
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_user
 
 
 class DuplicateEntryError(Exception):
@@ -50,7 +50,7 @@ class RecordManagement:
       self.TableName=TableName
       try:
          # CONNECTING TO DATABASE
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_user)
          
       except Exception as e:
          # If connection fails, show error message and exit
@@ -283,28 +283,22 @@ class Account(ABC):
                   self.db.TableName = "Admin"
                   # update password to database
                   self.db.update("update_password", new_password, username)
-                  # print('start')
+                  # sets attribute to new value
                   self.password=new_password
-                  # print('done')
-                  # print('pass:',self.password)
                   
+
                elif account_type == 'Users':
                   # sets tablename to user
                   self.db.TableName = "Users"
                   # update password to database
                   self.db.update("update_password", new_password, username)
-                  # print('start')
+                  # sets attribute to new value
                   self.password=new_password
-                  # print('done')
-                  # print('pass:',self.password)
+                 
                   
-               
          except Exception as e:
                messagebox('Error', f'Failed to change password: {str(e)}', error=True)
          else:
-            if account_type == 'Users':
-               # update the password in the user object
-               passwords['user'] = new_password
             messagebox('Success', 'Password changed successfully!')
             change_pass_window.destroy()
 
@@ -374,60 +368,60 @@ class Car:
       car_window.mainloop()
 
    def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap,window):
-         # initializes the car attributes
-         self.CarId=CarID
-         self.Brand=Brand
-         self.Model=Model
-         self.reservationstatus='UNRESERVED'
+      # initializes the car attributes
+      self.CarId=CarID
+      self.Brand=Brand
+      self.Model=Model
+      self.reservationstatus='UNRESERVED'
       
 
-         try:
-            #converts to numeric value
-            self.Priceperday=float(Priceperday)
-            self.SeatingCapacity=int(SeatingCap)
-         except Exception:
-            messagebox(title='Error',message=f'Invalid Price or Seating Capacity',error=True)
+      try:
+         #converts to numeric value
+         self.Priceperday=float(Priceperday)
+         self.SeatingCapacity=int(SeatingCap)
+      except Exception:
+         messagebox(title='Error',message=f'Invalid Price or Seating Capacity',error=True)
          
-         else:
+      else:
 
-            try:
+         try:
 
-               if len(self.CarId)>=3:
-                  if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
-                     result=self.db.fetch('CheckCarId',self.CarId)
-                     if result==None:
-                           # adds car to database if all entries valid
-                           self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
-                     else:
-                           # if car id entered already exists
-                           raise DuplicateEntryError('Car ID',self.CarId)
+            if len(self.CarId)>=3:
+               if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
+                  result=self.db.fetch('CheckCarId',self.CarId)
+                  if result==None:
+                        # adds car to database if all entries valid
+                        self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
                   else:
+                     # if car id entered already exists
+                     raise DuplicateEntryError('Car ID',self.CarId)
+               else:
                      raise InvalidEntry('CarID is NOt Accurate!')
                   
             
 
-               elif len(self.CarId)<3:
+            elif len(self.CarId)<3:
 
-                  if self.CarId==f'CR-{self.CarId}{self.Model}':
-                     result=self.db.fetch('CheckCarId',self.CarId)
-                     if result==None:
-                           # adds car to database if all entries valid
-                           self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
-                     else:
-                           # if car id entered already exists
-                           raise DuplicateEntryError('Car ID',self.CarId)
+               if self.CarId==f'CR-{self.CarId}{self.Model}':
+                  result=self.db.fetch('CheckCarId',self.CarId)
+                  if result==None:
+                     # adds car to database if all entries valid
+                     self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
                   else:
+                     # if car id entered already exists
+                     raise DuplicateEntryError('Car ID',self.CarId)
+               else:
                      raise InvalidEntry('CarID is NOt Accurate!')
 
                   
-            except InvalidEntry as e:
+         except InvalidEntry as e:
                messagebox(title='Invalid Entry',message=f'{e}',error=True)
-            except DuplicateEntryError as e:
+         except DuplicateEntryError as e:
                messagebox(title='Invalid Entry',message=f'{e}',error=True)
-            except Exception as e:
+         except Exception as e:
                messagebox(title='Error',message=f'{e}',error=True)
 
-            else:
+         else:
                messagebox(title='Success',message='Car Successfully Added!')
                window.destroy()
 
@@ -476,15 +470,14 @@ class User(Account):
       else:
          #SETTING USER DETAILS
          self.name, self.username, self.password, self.balance, self.address, self.carid = result[:6]
-         passwords['user']=self.password
-
 
          #  Destroy the login window here
          if hasattr(self, 'login_window'):
             self.login_window.destroy()
+
+         # destroy user login/signup window
          if hasattr(self,'user_window'):
             self.user_window.destroy()
-            print('destroyed')
 
          # Show main user operations window
          self.ShowOperations(main_window)
@@ -533,10 +526,6 @@ class User(Account):
       CTkButton(master=self.user_frame,text='LOG OUT',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
-
-   def ChangePassword(self, account_type, username):
-      super().ChangePassword(account_type, username)
-      self.password=passwords['user']
    
 
    def update_balance_ui(self):
@@ -992,7 +981,6 @@ class Rental_System:
       self.root.destroy()
 
 
-passwords={"user":None,"admin":None} #passwords for admin and user accounts
 ##____START POINT____##
 root=ctk.CTk()
 app=Rental_System(root)
