@@ -283,11 +283,20 @@ class Account(ABC):
                   self.db.TableName = "Admin"
                   # update password to database
                   self.db.update("update_password", new_password, username)
+                  # print('start')
+                  self.password=new_password
+                  # print('done')
+                  # print('pass:',self.password)
+                  
                elif account_type == 'Users':
                   # sets tablename to user
                   self.db.TableName = "Users"
                   # update password to database
                   self.db.update("update_password", new_password, username)
+                  # print('start')
+                  self.password=new_password
+                  # print('done')
+                  # print('pass:',self.password)
                   
                
          except Exception as e:
@@ -524,6 +533,7 @@ class User(Account):
       CTkButton(master=self.user_frame,text='LOG OUT',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
+
    def ChangePassword(self, account_type, username):
       super().ChangePassword(account_type, username)
       self.password=passwords['user']
