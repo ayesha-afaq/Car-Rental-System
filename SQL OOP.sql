@@ -86,7 +86,7 @@ CREATE TABLE Admin(
 GO
 
 INSERT INTO Admin(ADMIN_NAME,PASSWORD)
-VALUES('aam','1313');
+VALUES('aam','1313@ned');
 GO
 
 SELECT * FROM Admin;

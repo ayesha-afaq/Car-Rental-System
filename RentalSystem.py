@@ -14,7 +14,7 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
 # Import Connection string to connect to database file
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_areeba
 
 
 class DuplicateEntryError(Exception):
@@ -50,7 +50,7 @@ class RecordManagement:
       self.TableName=TableName
       try:
          # CONNECTING TO DATABASE
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_areeba)
          
       except Exception as e:
          # If connection fails, show error message and exit
