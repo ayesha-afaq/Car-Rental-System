@@ -14,7 +14,7 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
 # Import Connection string to connect to database file
-from ConnectionString import connection_string_ayesha
+from ConnectionString import connection_string_areeba
 
 
 class DuplicateEntryError(Exception):
@@ -50,7 +50,7 @@ class RecordManagement:
       self.TableName=TableName
       try:
          # CONNECTING TO DATABASE
-         self.connection=pyodbc.connect(connection_string_ayesha)
+         self.connection=pyodbc.connect(connection_string_areeba)
          
       except Exception as e:
          # If connection fails, show error message and exit
@@ -259,10 +259,23 @@ class Account(ABC):
       
       def update_password():
          new_password = password_entry.get()
-         # checks for empty entry
+         strength_score = 0
          if not new_password:
                messagebox('Error', 'Password cannot be empty', error=True)
                return
+         if len(new_password) > 6:
+            strength_score += 1
+         if any(char.isdigit() for char in new_password):
+            strength_score += 1
+         if any(char.isupper() for char in new_password):
+            strength_score += 1
+         if any(char.islower() for char in new_password):
+            strength_score += 1
+         if any(char in "!@#$%^&*()-_+=<>?[]|~`" for char in new_password):
+            strength_score += 1
+         if strength_score < 3:
+            messagebox('Error', 'Password is not strong enough', error=True)
+            return
                
          try:
                if account_type == 'Admin':
@@ -479,7 +492,7 @@ class User(Account):
       CTkButton(master=self.user_frame,text='VIEW BALANCE',command=self.view_balance,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='UPDATE BALANCE',command=self.update_balance_ui,corner_radius=10,fg_color='blue').pack(pady=10)
       CTkButton(master=self.user_frame,text='CHANGE PASSWORD',command= lambda: self.ChangePassword(account_type='Users',username=self.username),corner_radius=10,fg_color='blue').pack(pady=10)
-      CTkButton(master=self.user_frame,text='BACK TO HOME PAGE',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
+      CTkButton(master=self.user_frame,text='LOG OUT',command=lambda :self.back_home(destroy_window=self.user_window,deiconify_window=main_window),corner_radius=10,fg_color='blue').pack(pady=10)
 
       user_window.mainloop()
 
@@ -522,17 +535,37 @@ class User(Account):
       #CREATE USER FUNCTION
       self.db.set_tablename("Users")
       existing = self.db.fetch('check_user',username)
+      strength_score = 0
       try:
+          #CHCEKING IF ALL FIELDS ARE FILLED
+         if username=='' or password=='' or name=='' or balance=='' or address=='':
+            raise InvalidEntry('Fill in all fields')
          #CHECKING IF USERNAME ALREADY EXISTS
          if existing:
             raise DuplicateEntryError("Username", username)
-         #CHCEKING IF ALL FIELDS ARE FILLED
-         elif username=='' or password=='' or name=='' or balance=='' or address=='':
-            raise InvalidEntry('Fill in all fields')
+        
+         if len(password) > 6:
+            strength_score += 1
+         if any(char.isdigit() for char in password):
+            strength_score += 1
+         if any(char.isupper() for char in password):
+            strength_score += 1
+         if any(char.islower() for char in password):
+            strength_score += 1
+         if any(char in "!@#$%^&*()-_+=<>?[]|~`" for char in password):
+            strength_score += 1
+         if strength_score < 3:
+            messagebox('Error', 'Password is not strong enough', error=True)
+            return
+         #CHECKING IF BALANCE IS NUMERIC
+         balance = float(balance)
          self.db.insert(username,name,password,balance,address)
          
       except DuplicateEntryError as e:
          messagebox('Error',f'{e}',error=True)
+         return
+      except ValueError:
+         messagebox('Error','enter a valid amount',error=True)
          return
       except pyodbc.ProgrammingError:
          messagebox('Error','enter a valid amount',error=True)
@@ -780,11 +813,11 @@ class Admin(Account):
       self.db=RecordManagement('Admin')
 
       # Username Input
-      user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='green')
+      user_name=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Username',corner_radius=10,fg_color='blue')
       user_name.pack(pady=10)
       
       #Password Input
-      password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='green')
+      password=CTkEntry(master=self.admin_login_Frame,placeholder_text='Enter your Password',corner_radius=10,fg_color='blue')
       password.pack(pady=10)
 
       #Login Button

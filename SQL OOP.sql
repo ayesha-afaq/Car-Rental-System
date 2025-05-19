@@ -41,15 +41,15 @@ WHERE Car_ID IS NOT NULL;
 GO
 
 INSERT INTO Users(NAME,USER_NAME,PASSWORD,BALANCE,ADDRESS,Car_ID)
-VALUES ('John Doe','JohnDoe','doe123',5890,'123 Main St',NULL);
+VALUES ('John Doe','JohnDoe','JohnD@e92',5890,'123 Main St',NULL);
 INSERT INTO Users(NAME,USER_NAME,PASSWORD,BALANCE,ADDRESS,Car_ID)
-VALUES('Alice Wood','Alice!','thisisalice',2459,'456 Elm St',NULL);
+VALUES('Alice Wood','Alice!','Alic3#Wood',2459,'456 Elm St',NULL);
 INSERT INTO Users(NAME,USER_NAME,PASSWORD,BALANCE,ADDRESS,Car_ID)
-VALUES('Irfan Khan','IrfanJunior','junior7',3567,'Daisy St 6','CR-HonCity2022');
+VALUES('Irfan Khan','IrfanJunior','Khan!Irf@n9',3567,'Daisy St 6','CR-HonCity2022');
 INSERT INTO Users(NAME,USER_NAME,PASSWORD,BALANCE,ADDRESS,Car_ID)
-VALUES('Sarah Todd','sarah_todd','todd789',90356,'789 Oak Ave',NULL);
+VALUES('Sarah Todd','sarah_todd','S@rahT0dd!',90356,'789 Oak Ave',NULL);
 INSERT INTO Users(NAME,USER_NAME,PASSWORD,BALANCE,ADDRESS,Car_ID)
-VALUES('Elaan Roy','royjoy','roy567',75790,'Broadway 911',NULL);
+VALUES('Elaan Roy','royjoy','RoyElaan$7',75790,'Broadway 911',NULL);
 GO
 
 SELECT * FROM Users;
