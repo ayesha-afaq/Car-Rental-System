@@ -14,7 +14,7 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
 # Import Connection string to connect to database file
-from ConnectionString import connection_string_areeba
+from ConnectionString import connection_string_ayesha
 
 
 class DuplicateEntryError(Exception):
@@ -50,7 +50,7 @@ class RecordManagement:
       self.TableName=TableName
       try:
          # CONNECTING TO DATABASE
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          
       except Exception as e:
          # If connection fails, show error message and exit
@@ -469,6 +469,9 @@ class User(Account):
          #  Destroy the login window here
          if hasattr(self, 'login_window'):
             self.login_window.destroy()
+         if hasattr(self,'user_window'):
+            self.user_window.destroy()
+            print('destroyed')
 
          # Show main user operations window
          self.ShowOperations(main_window)
@@ -827,7 +830,7 @@ class Admin(Account):
 
       self.username=None
       self.password=None
-      
+
       # Withdraws the main program window
       main_window.withdraw()
       # LOGIN WINDOW FOR ADMIN ACCOUNT
