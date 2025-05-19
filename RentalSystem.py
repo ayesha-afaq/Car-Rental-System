@@ -374,6 +374,7 @@ class Car:
       
 
          try:
+            #converts to numeric value
             self.Priceperday=float(Priceperday)
             self.SeatingCapacity=int(SeatingCap)
          except Exception:
