@@ -824,6 +824,10 @@ class RentalHistory:
 
 class Admin(Account):
    def __init__(self,main_window):
+
+      self.username=None
+      self.password=None
+      
       # Withdraws the main program window
       main_window.withdraw()
       # LOGIN WINDOW FOR ADMIN ACCOUNT
@@ -863,6 +867,10 @@ class Admin(Account):
          messagebox('Login Failed','Invalid Username or Password',error=True)
          return
       else:
+         #sets attributes of admin
+         self.userame=user_name
+         self.password=password
+
          # destroys the login window if present
          if hasattr(self, 'admin_login_window'):
             self.admin_login_window.destroy()
