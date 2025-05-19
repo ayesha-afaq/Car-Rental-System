@@ -603,6 +603,9 @@ class User(Account):
          self.balance=balance
          self.address=address
          messagebox('Success','User Created Successfully please login to continue')
+         # show user login window again
+         self.user_window.deiconify()
+         #destroy signup window
          self.create_user_window.destroy()
 
    def CreateUserWindow(self):
