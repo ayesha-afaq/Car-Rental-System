@@ -559,7 +559,6 @@ class User(Account):
          #CHECKING IF ANY CARS ARE AVAILABLE FOR RENT
          self.db.set_tablename("Cars")
          result=self.db.fetch('rentcar')
-         print(result)
          if result==[]:
             messagebox('Error','No Cars Available for Rent',error=True)
             return
