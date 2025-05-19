@@ -14,7 +14,7 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('blue')
 
 # Import Connection string to connect to database file
-from ConnectionString import connection_string_areeba
+from ConnectionString import connection_string_ayesha
 
 
 class DuplicateEntryError(Exception):
@@ -50,7 +50,7 @@ class RecordManagement:
       self.TableName=TableName
       try:
          # CONNECTING TO DATABASE
-         self.connection=pyodbc.connect(connection_string_areeba)
+         self.connection=pyodbc.connect(connection_string_ayesha)
          
       except Exception as e:
          # If connection fails, show error message and exit
@@ -362,42 +362,64 @@ class Car:
       car_window.mainloop()
 
    def AddCar(self,CarID,Brand,Model,Priceperday,SeatingCap,window):
-      # initializes the car attributes
-      self.CarId=CarID
-      self.Brand=Brand
-      self.Model=Model
-      self.Priceperday=Priceperday
-      self.SeatingCapacity=SeatingCap
-      self.reservationstatus='UNRESERVED'
-      try:
-         # checks if format of car id is valid
-         if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
-            # checks if price and seating cap are numeric
-            if type(self.PricePerDay)==int and type(self.SeatingCapacity)==int:
-                  # checks if car id already exists
-                  result=self.db.fetch('CheckCarId',self.CarId)
-                  if result==None:
-                     # adds car to database if all entries valid
-                     self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
-                  else:
-                     # if car id entered already exists
-                     raise DuplicateEntryError('Car ID',self.CarId)
-            else:
-               # if price and seating are not numeric
-               raise InvalidEntry('Price or Seating Capacity Invalid')
-         else:
-            # if car id format is not valid
-            raise InvalidEntry('CarID is NOt Accurate!')
+         # initializes the car attributes
+         self.CarId=CarID
+         self.Brand=Brand
+         self.Model=Model
+         self.reservationstatus='UNRESERVED'
+      
+
+         try:
+            #converts to numeric value
+            self.Priceperday=float(Priceperday)
+            self.SeatingCapacity=int(SeatingCap)
+         except Exception:
+            messagebox(title='Error',message=f'Invalid Price or Seating Capacity',error=True)
          
-      except InvalidEntry as e:
-         messagebox(title='Invalid Entry',message=f'{e}',error=True)
-      except DuplicateEntryError as e:
-         messagebox(title='Invalid Entry',message=f'{e}',error=True)
-      except Exception as e:
-         messagebox(title='Error',message=f'{e}',error=True)
-      else:
-         messagebox(title='Success',message='Car Successfully Added!')
-         window.destroy()
+         else:
+
+            try:
+
+               if len(self.CarId)>=3:
+                  if self.CarId== f'CR-{self.Brand[0:3]}{self.Model}':
+                     result=self.db.fetch('CheckCarId',self.CarId)
+                     if result==None:
+                           # adds car to database if all entries valid
+                           self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
+                     else:
+                           # if car id entered already exists
+                           raise DuplicateEntryError('Car ID',self.CarId)
+                  else:
+                     raise InvalidEntry('CarID is NOt Accurate!')
+                  
+            
+
+               elif len(self.CarId)<3:
+
+                  if self.CarId==f'CR-{self.CarId}{self.Model}':
+                     result=self.db.fetch('CheckCarId',self.CarId)
+                     if result==None:
+                           # adds car to database if all entries valid
+                           self.db.insert(self.CarId,self.Brand,self.Model,self.Priceperday,self.SeatingCapacity,self.reservationstatus)
+                     else:
+                           # if car id entered already exists
+                           raise DuplicateEntryError('Car ID',self.CarId)
+                  else:
+                     raise InvalidEntry('CarID is NOt Accurate!')
+
+                  
+            except InvalidEntry as e:
+               messagebox(title='Invalid Entry',message=f'{e}',error=True)
+            except DuplicateEntryError as e:
+               messagebox(title='Invalid Entry',message=f'{e}',error=True)
+            except Exception as e:
+               messagebox(title='Error',message=f'{e}',error=True)
+
+            else:
+               messagebox(title='Success',message='Car Successfully Added!')
+               window.destroy()
+
+            
 
       
 class User(Account):
